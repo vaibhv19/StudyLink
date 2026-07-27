@@ -24,7 +24,7 @@ This document defines the REST API contract between the React frontend and the D
 
 | Endpoint | Method | Auth | Description |
 | :--- | :--- | :--- | :--- |
-| `/register/` | `POST` | Public | Creates new account. *Note: Throws 409 if email exists via OAuth.* |
+| `/register/` | `POST` | Public | Creates new account. If the email already exists via OAuth, the API returns guidance to authenticate with email/password and link the provider. |
 | `/login/` | `POST` | Public | Returns Access/Refresh tokens and user object. |
 | `/token/refresh/` | `POST` | Public | Rotates the access token using a valid refresh token. |
 | `/social/google/` | `POST` | Public | Exchanges provider code for JWT session. |
@@ -37,7 +37,7 @@ This document defines the REST API contract between the React frontend and the D
 | Endpoint | Method | Auth | Description |
 | :--- | :--- | :--- | :--- |
 | `/` | `GET` | Public | List resources with filters (`subject`, `course`, `search`). |
-| `/` | `POST` | Private | Upload PDF resource. (Multipart: `file`, `title`, `tags`). |
+| `/` | `POST` | Private | Upload PDF resource. (Multipart: `file`, `title`, `tags`). The created resource is initially `PROCESSING`; it becomes `READY`, `FAILED`, or `UNSEARCHABLE` after ingestion. |
 | `/{id}/` | `GET` | Public | Get resource metadata and Supabase file URL. |
 | `/{id}/rate/` | `POST` | Private | Toggle upvote/rating on a resource. |
 | `/{id}/comments/` | `GET` | Public | List Doubt Board discussion for the resource. |
@@ -82,7 +82,7 @@ Managing physical items and the `Available → Requested → Given Away` state m
 
 | Endpoint | Method | Auth | Description |
 | :--- | :--- | :--- | :--- |
-| `/` | `GET` | Public | List giveaway items with filters (`location`, `subject`, `condition`). |
+| `/` | `GET` | Public | List giveaway items with filters (`pickup_area`, `subject`, `condition`). |
 | `/` | `POST` | Private | Create a listing. (Multipart: `photo`, `title`, `description`). |
 | `/{id}/` | `GET` | Public | Detail view of a listing + pickup area info. |
 | `/{id}/request/` | `POST` | Private | Interested user sends a request to the owner. |
@@ -129,5 +129,5 @@ This endpoint is designed to power the unified management view for the active us
 - `400 Bad Request`: Validation error (e.g., invalid subject tag).
 - `401 Unauthorized`: Missing or expired JWT.
 - `403 Forbidden`: Attempting to update a listing or rate a resource owned by someone else.
-- `409 Conflict`: Business logic conflict (e.g., Social OAuth email already exists in JWT auth stream).
+- `409 Conflict`: Business logic conflict (e.g., when a provider attempt cannot be linked without the required email/password confirmation).
 - `500 Internal Server Error`: Server-side failure (e.g., Gemini API timeout or Supabase connection loss).

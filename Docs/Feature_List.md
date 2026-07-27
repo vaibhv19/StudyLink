@@ -16,8 +16,8 @@
 
 ## Module 2 — Giveaway Marketplace (OLX-style)
 
-- List an item to give away: title, condition, subject/course tag, description, photo, pickup location/area
-- Search/filter by subject, course, condition, location
+- List an item to give away: title, condition, subject/course tag, description, photo, pickup_area
+- Search/filter by subject, course, condition, pickup_area
 - Status lifecycle: `Available → Requested → Given Away` (falls back to `Available` if a request doesn't work out) — same state-machine pattern as Trajectory's application status
 - Request flow: interested users send a request; owner reviews pending requests and picks one; other requesters get notified the item's gone
 - Owner dashboard: your listings + incoming requests, in one place
@@ -50,6 +50,6 @@
 - Backend: Django, containerized, deployed to GCP Cloud Run
 - Frontend: React, deployed to Vercel
 
-## Open Question
+## Account Linking
 
-- How an account created via email/JWT merges (or doesn't) with a later OAuth login using the same email address — not yet resolved.
+- If an OAuth login uses an email that already exists for a local account, the user is prompted to authenticate once with email/password and then the provider is linked for future sign-ins.

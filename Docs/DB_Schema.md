@@ -42,9 +42,10 @@ This document defines the relational schema and vector storage architecture for 
 | :--- | :--- | :--- | :--- |
 | `id` | `UUID` | PK | Primary identifier. |
 | `email` | `VARCHAR(255)` | UNIQUE, INDEX | Primary contact and login key. |
-| `password` | `VARCHAR(255)` | NULLABLE | Hash for JWT auth; null for pure OAuth users. |
-| `is_oauth_only` | `BOOLEAN` | DEFAULT FALSE | Flag for accounts created via Google/GitHub. |
-| `oauth_conflict_flag`| `BOOLEAN` | DEFAULT FALSE | **Open Question Resolution:** Set TRUE if OAuth login attempts to use an existing email/pass account. |
+| `password` | `VARCHAR(255)` | NULLABLE | Hash for email/password auth; nullable for OAuth-only accounts. |
+| `provider` | `VARCHAR(20)` | | Primary auth provider for the account (`local`, `google`, `github`). |
+| `linked_google` | `BOOLEAN` | DEFAULT FALSE | Whether the account is linked to Google OAuth. |
+| `linked_github` | `BOOLEAN` | DEFAULT FALSE | Whether the account is linked to GitHub OAuth. |
 | `full_name` | `VARCHAR(100)` | | User's display name. |
 | `avatar_url` | `TEXT` | | Link to profile photo. |
 
@@ -57,6 +58,8 @@ This document defines the relational schema and vector storage architecture for 
 | `file_path` | `TEXT` | | Reference key in Supabase Storage. |
 | `subject_tag` | `VARCHAR(50)` | INDEX | Subject filter (e.g., "CS101"). |
 | `course_code` | `VARCHAR(20)` | INDEX | Specific course identifier. |
+| `status` | `VARCHAR(20)` | | Resource lifecycle: `PROCESSING`, `READY`, `FAILED`, `UNSEARCHABLE`. |
+| `is_active` | `BOOLEAN` | DEFAULT TRUE | Soft-delete flag for resource archival. |
 | `upvote_count` | `INTEGER` | DEFAULT 0 | Denormalized count for performance. |
 
 ### 3.3 `resource_chunks`
@@ -76,8 +79,9 @@ This document defines the relational schema and vector storage architecture for 
 | `title` | `VARCHAR(200)` | | Item name. |
 | `status` | `VARCHAR(20)` | INDEX | `AVAILABLE`, `REQUESTED`, `GIVEN_AWAY`. |
 | `photo_url` | `TEXT` | | Supabase Storage image reference. |
-| `pickup_location` | `TEXT` | | General area description for handoff. |
+| `pickup_area` | `TEXT` | | General area description for handoff. |
 | `condition` | `VARCHAR(50)` | | `New`, `Used - Good`, `Used - Fair`. |
+| `is_active` | `BOOLEAN` | DEFAULT TRUE | Soft-delete flag for listing archival. |
 
 ### 3.5 `requests`
 | Column | Type | Constraints | Description |
@@ -96,6 +100,17 @@ This document defines the relational schema and vector storage architecture for 
 | `from_status` | `VARCHAR(20)` | | Previous state. |
 | `to_status` | `VARCHAR(20)` | | New state. |
 | `changed_at` | `TIMESTAMP` | | Audit timestamp. |
+
+### 3.7 `notifications`
+| Column | Type | Constraints | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | `UUID` | PK | Primary identifier. |
+| `recipient_id` | `UUID` | FK (users) | User receiving the notification. |
+| `type` | `VARCHAR(50)` | | Event type such as `NEW_MARKETPLACE_REQUEST` or `RESOURCE_UPVOTE`. |
+| `title` | `VARCHAR(255)` | | Short notification title. |
+| `message` | `TEXT` | | Human-readable notification body. |
+| `is_read` | `BOOLEAN` | DEFAULT FALSE | Read/unread state. |
+| `created_at` | `TIMESTAMP` | | Notification timestamp. |
 
 ---
 
@@ -118,6 +133,6 @@ This document defines the relational schema and vector storage architecture for 
 
 ## 5. Data Integrity Rules
 
-- **Soft Deletion**: `resources` and `listings` should implement a `is_active` flag rather than hard deletion to preserve the `listing_status_history` and `resource_chunks` for analytics.
+- **Soft Deletion**: `resources` and `listings` use `is_active` rather than hard deletion to preserve the `listing_status_history` and `resource_chunks` for analytics.
 - **State Constraint**: `requests.status` cannot be set to `ACCEPTED` if the parent `listings.status` is already `REQUESTED` by another user (enforced via database transaction in the service layer).
-- **Notification Cascade**: Deleting a `user` must cascade to their `notifications`, but keep their `resource_chunks` as "Anonymous Contributions" to avoid breaking RAG for other students.
+- **Notification Handling**: `notifications` are generated asynchronously via Celery tasks following marketplace and resource events, while preserving `resource_chunks` for existing RAG content.

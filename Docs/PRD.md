@@ -35,13 +35,13 @@ StudyLink addresses two distinct frictions within the academic lifecycle where r
 *   **Chat-with-Notes (RAG):** A dedicated interface allowing users to select a specific PDF and ask technical questions. The system performs similarity searches over that document’s chunks to provide context-aware answers.
 
 ### 3.2 Module 2: Giveaway Marketplace (Physical)
-*   **Listing Management:** Users can list items with titles, condition reports, subject tags, and pickup area descriptions.
+*   **Listing Management:** Users can list items with titles, condition reports, subject tags, and pickup_area descriptions.
 *   **State-Machine Lifecycle:** Listings follow a strict flow: `Available → Requested → Given Away`. Items can fall back to `Available` if a handoff fails.
 *   **Owner Dashboard:** A centralized view for users to manage their active listings and review pending requests from interested students.
 *   **Handoff Coordination:** A request system where owners choose a recipient, and all other requesters are notified once the item is claimed.
 
 ### 3.3 Backend Layer (Django)
-*   **Authentication:** Dual-stream auth via JWT (Email/Password) and OAuth2 (Google/GitHub).
+*   **Authentication:** Dual-stream auth via JWT (Email/Password) and OAuth2 (Google/GitHub), with explicit account linking when an OAuth email matches an existing local account.
 *   **Storage Integration:** Managing PDF and image uploads to Supabase Storage.
 *   **Vector Operations:** Handling text chunking and storing embeddings in Supabase Postgres via `pgvector`.
 *   **Notification Engine:** Triggering system notifications for request updates and marketplace status changes.
@@ -72,9 +72,9 @@ StudyLink addresses two distinct frictions within the academic lifecycle where r
 
 ---
 
-## 6. Key Risks & Open Questions
+## 6. Key Risks & Considerations
 
-*   **Account Merging Conflict:** How to handle the scenario where a user registers via Email/Password and later attempts to log in via Google/GitHub using the same email address. This remains an **open design question** to be resolved during the Auth implementation phase.
+*   **Account Linking Flow:** The implementation must ensure that an OAuth login using a pre-existing local email prompts the user to authenticate once with email/password and then link the provider for future logins.
 *   **OCR/Handwritten Notes:** The quality of the RAG feature is highly dependent on the readability of uploaded PDFs. There is a risk of poor answer quality or hallucinations when users upload low-contrast, handwritten technical notes.
 *   **Request Concurrency:** Managing multiple simultaneous requests for a single physical item to ensure the owner doesn't accidentally "double-commit" a handoff.
 *   **Gemini Context Limits:** Managing large PDFs that may exceed the prompt context window if chunking and retrieval aren't precisely tuned.

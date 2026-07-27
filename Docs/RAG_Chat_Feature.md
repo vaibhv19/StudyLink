@@ -18,7 +18,7 @@ Unlike comprehensive RAG systems that query across an entire library, StudyLinkâ
 
 To ensure chat is available immediately upon first request, chunking and embedding occur asynchronously during the document upload process.
 
-*   **Timing:** Triggered by a Django post-save signal or a background task (Celery/Huey) immediately after a successful upload to Supabase Storage.
+*   **Timing:** Triggered by a Celery task immediately after a successful upload to Supabase Storage.
 *   **Splitter:** `RecursiveCharacterTextSplitter`.
 *   **Parameters:** 
     *   **Chunk Size:** 1,000 characters.
@@ -32,7 +32,7 @@ To ensure chat is available immediately upon first request, chunking and embeddi
 StudyLink leverages the Google Gemini ecosystem for both vectorization and response synthesis.
 
 *   **Embedding Model:** `text-embedding-004` (768 dimensions).
-*   **Storage:** `vault_chunks` table in Supabase Postgres.
+*   **Storage:** `resource_chunks` table in Supabase Postgres.
 *   **Schema:**
     | Column | Type | Role |
     | :--- | :--- | :--- |
@@ -48,7 +48,7 @@ StudyLink leverages the Google Gemini ecosystem for both vectorization and respo
 
 1.  **Request:** React frontend sends the user's question + `resource_id` to `POST /api/v1/chat/query/`.
 2.  **Vectorization:** Django calls Gemini to embed the user's question.
-3.  **Scoped Search:** Django executes a `pgvector` similarity search (Cosine Distance `<=>`) with a hard filter: `WHERE resource_id = [Target_ID]`.
+3.  **Scoped Search:** Django executes a Cosine Similarity search using the `pgvector` `<=>` operator with a hard filter: `WHERE resource_id = [Target_ID]`.
 4.  **Top-K Retrieval:** The system retrieves the Top-5 most relevant chunks.
 5.  **Synthesis (Grounding):** Chunks are injected into a prompt: *"Using only the following excerpts from a student's notes, answer the question: [Question]. If the answer isn't in the excerpts, say you don't know."*
 6.  **Response:** The backend returns the generated answer plus the `page_number` and `content` of the retrieved chunks.

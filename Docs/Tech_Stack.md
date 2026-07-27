@@ -11,8 +11,8 @@ This document defines the technical specifications and infrastructure for **Stud
 | **Python** | `3.12` | Leverages modern type hinting and performance improvements for async-aware code. |
 | **Django** | `5.0` | Utilizes the latest ORM features and native support for asynchronous database operations where needed. |
 | **Django REST Framework** | `3.15` | Provides the industry-standard toolkit for building the platform's Web APIs. |
-| **JWT Auth** | `SimpleJWT` | Decentralizes session management, allowing the frontend to store tokens and scale the backend statelessly. |
-| **OAuth Integration** | `social-auth-app-django` | Chosen over `all-auth` for its decoupled nature, giving granular control over the login/link pipeline—essential for the account-merge open question. |
+| **JWT Auth** | `SimpleJWT` | Decentralizes session management, allowing the frontend to keep the access token in memory and the refresh token in an `HttpOnly` cookie. |
+| **OAuth Integration** | `Google OAuth` + `GitHub OAuth` | Supports social sign-in while preserving a consistent account-linking flow for existing local accounts. |
 | **App Structure** | `accounts`, `vault`, `market`, `core` | Separates domain logic into distinct apps: `vault` for digital, `market` for physical, and `core` for shared Subject/Course tags. |
 
 ---
@@ -47,7 +47,7 @@ This document defines the technical specifications and infrastructure for **Stud
 | **LLM / Embeddings** | `Gemini 1.5 Flash` | Offers the best balance of speed and large context window for summarizing student notes at no/low cost. |
 | **Embedding Model** | `text-embedding-004` | High-performance model specifically optimized for technical and academic text retrieval. |
 | **Chunking** | `RecursiveCharacter` | Splits PDFs by structural markers (paragraphs, newlines) via LangChain to maintain context in dense notes. |
-| **Query Pattern** | `Inner Product` | Uses `pgvector` to perform `<#>` similarity searches scoped to a single `document_id` in the `vault_chunks` table. |
+| **Query Pattern** | `Cosine Similarity` | Uses `pgvector` to perform `<=>` similarity searches scoped to a single `resource_id` in the `resource_chunks` table. |
 
 ---
 
@@ -55,8 +55,9 @@ This document defines the technical specifications and infrastructure for **Stud
 
 | Component | Platform | Strategy |
 | :--- | :--- | :--- |
-| **Backend** | `GCP Cloud Run` | Django is containerized (Gunicorn + Uvicorn worker) for a serverless, auto-scaling deployment that only charges per request. |
+| **Backend** | `Google Cloud Run` | Django is containerized for a serverless, auto-scaling deployment that only charges per request. |
 | **Frontend** | `Vercel` | Optimized for React SPAs; handles edge-caching and global distribution of the UI assets. |
+| **Background Processing** | `Celery + Redis` | Handles asynchronous ingestion, embedding, and notification jobs. |
 | **CI/CD** | `GitHub Actions` | Automatically builds the Docker image on push, pushes to Google Artifact Registry, and triggers a Cloud Run revision. |
 
 ---
@@ -66,7 +67,7 @@ This document defines the technical specifications and infrastructure for **Stud
 | Strategy | Rationale |
 | :--- | :--- |
 | **Hybrid Local/Cloud** | **Approach:** Local Django + Local React connecting to a remote Supabase Dev Project. |
-| **Rationale** | Running a local Dockerized Postgres with `pgvector` and an S3-compatible storage emulator (like MinIO) adds significant local setup friction. Using a dedicated Supabase "Dev" environment ensures the DB schema, storage buckets, and vector extensions are identical to production with zero local configuration. |
+| **Rationale** | Running a local Dockerized Postgres with `pgvector` and an S3-compatible storage emulator (like MinIO) adds significant local setup friction. Using a dedicated Supabase "Dev" environment ensures the DB schema, storage buckets, and vector extensions are identical to production with zero local configuration. Redis is also available for future caching if required. |
 
 ---
 
@@ -74,7 +75,7 @@ This document defines the technical specifications and infrastructure for **Stud
 
 ### Why hand-roll Django Auth + JWT instead of using Supabase Auth?
 
-While Supabase Auth is convenient, I chose **Django + SimpleJWT + Social-Auth-App-Django** for three strategic reasons:
+While Supabase Auth is convenient, I chose **Django + SimpleJWT + Google/GitHub OAuth** for three strategic reasons:
 
 1.  **Ownership of the User Model:** In a platform like StudyLink, the `User` is the core of everything—marketplace reputation, resource ownership, and academic profiles. Storing users in Django's internal DB allows me to leverage the full power of the Django ORM for complex joins and signals (e.g., notifying requesters when an item is gone).
 2.  **Custom Account Merging Logic:** As noted in the PRD, merging a JWT-based email account with a GitHub OAuth login is a complex business rule. Supabase Auth’s merging logic is largely a "black box." By handling this in Django, I can implement precise checks and manual confirmation steps to ensure student identities aren't duplicated.

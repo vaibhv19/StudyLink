@@ -60,7 +60,7 @@ Select one of the following palettes to define the product’s personality.
     - **Chat UI:** Questions appear in user bubbles; AI answers appear in a distinct surface color with **"Source Excerpts"** rendered as small, clickable cards below the text that jump to the specific PDF page.
 
 ### 3.2 Giveaway Marketplace (The Classifieds View)
-- **Browse Screen:** Image-heavy masonry or flex-grid. Emphasis on the photo and the "Pickup Location" badge.
+- **Browse Screen:** Image-heavy masonry or flex-grid. Emphasis on the photo and the "Pickup Area" badge.
 - **Listing Creation:** Step-by-step form with a heavy focus on the "Condition" selector and "Photo Upload" preview.
 - **Listing Detail:** Large hero image. Primary action button (e.g., "Request Item") is sticky at the bottom on mobile.
 
