@@ -14,5 +14,5 @@ urlpatterns = [
     path('api/v1/auth/', include('accounts.urls')),
     path('api/v1/core/', include('core.urls')),
     path('api/v1/vault/', include('vault.urls')),
-    # path('api/v1/market/', include('market.urls')),
+    path('api/v1/market/', include('market.urls')),
 ]
