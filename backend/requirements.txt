@@ -9,3 +9,7 @@ django-cors-headers>=4.3,<4.4
 requests>=2.31,<2.33
 celery>=5.3,<5.4
 redis>=5.0,<5.1
+google-generativeai>=0.4.0,<0.6.0
+pypdf>=4.0,<5.0
+pgvector>=0.2.0,<0.4.0
+
