@@ -101,3 +101,34 @@ def cancel_request(user, request_id):
 
         return request_obj
 
+def complete_handoff(owner, listing_id):
+    with transaction.atomic():
+        try:
+            listing = Listing.objects.select_for_update().get(id=listing_id)
+        except Listing.DoesNotExist:
+            raise ValidationError("Listing not found.")
+
+        # Verify ownership
+        if listing.owner != owner:
+            raise PermissionDenied("You do not have permission to modify this listing.")
+
+        # Ensure listing is in a valid pre-terminal state
+        if listing.status not in ['AVAILABLE', 'REQUESTED']:
+            raise ValidationError("This listing cannot be marked as given away in its current state.")
+
+        old_status = listing.status
+        listing.status = 'GIVEN_AWAY'
+        listing.save(update_fields=['status'])
+
+        # Write ListingStatusHistory record
+        ListingStatusHistory.objects.create(
+            listing=listing,
+            from_status=old_status,
+            to_status='GIVEN_AWAY',
+            changed_by=owner,
+            reason="Handoff completed"
+        )
+
+        return listing
+
+
