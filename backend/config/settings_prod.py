@@ -33,3 +33,18 @@ SECURE_HSTS_PRELOAD = True
 # Extra Content Security Headers
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
+
+# CORS Production Configuration
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+
+cors_prod_origins_raw = os.environ.get('CORS_ALLOWED_ORIGINS', '')
+if cors_prod_origins_raw:
+    CORS_ALLOWED_ORIGINS = [orig.strip() for orig in cors_prod_origins_raw.split(',') if orig.strip()]
+else:
+    CORS_ALLOWED_ORIGINS = []
+
+CORS_ALLOWED_ORIGIN_REGEXES = []
+if os.environ.get('CORS_ALLOW_VERCEL_PREVIEWS', 'False').lower() == 'true':
+    CORS_ALLOWED_ORIGIN_REGEXES.append(r"^https:\/\/.*\.vercel\.app$")
+
