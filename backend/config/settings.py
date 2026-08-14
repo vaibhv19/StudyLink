@@ -218,5 +218,6 @@ CELERY_TASK_DEFAULT_QUEUE = 'default'
 CELERY_TASK_ROUTES = {
     'vault.tasks.process_pdf_document_task': {'queue': 'ingestion'},
     'market.tasks.dispatch_marketplace_alerts_task': {'queue': 'notifications'},
+    'notifications.tasks.send_notification_task': {'queue': 'notifications'},
 }
 
