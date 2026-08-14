@@ -1,23 +1,43 @@
 import { create } from 'zustand';
 
-export const useAuthStore = create((set) => ({
+export const useAuthStore = create((set, get) => ({
   user: null,
+  accessToken: null,
   isAuthenticated: false,
-  token: null,
-  
-  login: (userData, token) => set({
-    user: userData,
-    isAuthenticated: true,
-    token: token
-  }),
-  
-  logout: () => set({
-    user: null,
-    isAuthenticated: false,
-    token: null
-  }),
-  
-  updateProfile: (profileData) => set((state) => ({
-    user: state.user ? { ...state.user, ...profileData } : null
-  }))
+
+  login: (userData, accessToken) => {
+    set({
+      user: userData,
+      accessToken: accessToken,
+      isAuthenticated: true,
+    });
+  },
+
+  logout: () => {
+    set({
+      user: null,
+      accessToken: null,
+      isAuthenticated: false,
+    });
+  },
+
+  setAccessToken: (accessToken) => {
+    set({
+      accessToken: accessToken,
+      isAuthenticated: !!accessToken,
+    });
+  },
+
+  setUser: (userData) => {
+    set({
+      user: userData,
+    });
+  },
+
+  updateProfile: (profileData) => {
+    const currentUser = get().user;
+    set({
+      user: currentUser ? { ...currentUser, ...profileData } : null,
+    });
+  },
 }));
