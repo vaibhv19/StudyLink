@@ -53,3 +53,28 @@ class ResourceUpvote(models.Model):
 
     class Meta:
         unique_together = ('resource', 'user')
+
+class DoubtBoardComment(models.Model):
+    id = models.AutoField(primary_key=True)
+    resource = models.ForeignKey(
+        Resource,
+        on_delete=models.CASCADE,
+        related_name="comments"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="replies"
+    )
+    content = models.TextField()
+    is_solved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Comment by {self.user.email} on {self.resource.title}"

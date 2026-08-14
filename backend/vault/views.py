@@ -5,9 +5,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from core.pagination import StandardResultsSetPagination
-from vault.models import Resource, ResourceUpvote
-from vault.serializers import ResourceUploadSerializer, ResourceSerializer
+from vault.models import Resource, ResourceUpvote, DoubtBoardComment
+from vault.serializers import ResourceUploadSerializer, ResourceSerializer, DoubtBoardCommentSerializer
 
 class ResourceListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -91,3 +92,57 @@ class UpvoteToggleView(APIView):
             "upvote_count": resource.upvote_count,
             "has_upvoted": has_upvoted
         }, status=status.HTTP_200_OK)
+
+class CommentListCreateView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = DoubtBoardCommentSerializer
+
+    def get_queryset(self):
+        resource_id = self.kwargs.get('id')
+        # Return only top-level comments for this resource. Nested replies are resolved in the serializer.
+        return DoubtBoardComment.objects.filter(
+            resource_id=resource_id,
+            parent=None
+        ).select_related('user', 'resource').order_by('created_at')
+
+    def create(self, request, *args, **kwargs):
+        resource_id = self.kwargs.get('id')
+        try:
+            resource = Resource.objects.get(id=resource_id, is_active=True)
+        except Resource.DoesNotExist:
+            return Response(
+                {"code": "not_found", "message": "Resource not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        data = request.data.copy()
+        data['resource'] = str(resource.id)
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        comment = serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class CommentDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        try:
+            comment = DoubtBoardComment.objects.select_related('resource').get(pk=pk)
+        except DoubtBoardComment.DoesNotExist:
+            return Response(
+                {"code": "not_found", "message": "Comment not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Check permissions: must be comment poster or resource uploader
+        if request.user != comment.user and request.user != comment.resource.uploader:
+            raise PermissionDenied("You do not have permission to modify this comment's solved status.")
+
+        is_solved = request.data.get('is_solved')
+        if is_solved is not None:
+            comment.is_solved = bool(is_solved)
+            comment.save(update_fields=['is_solved'])
+
+        serializer = DoubtBoardCommentSerializer(comment, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

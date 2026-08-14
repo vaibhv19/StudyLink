@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from core.models import Subject, Course
 from core.serializers import SubjectSerializer, CourseSerializer
 from accounts.serializers import UserDetailSerializer
-from vault.models import Resource
+from vault.models import Resource, DoubtBoardComment
 
 User = get_user_model()
 
@@ -65,4 +65,28 @@ class ResourceUploadSerializer(serializers.ModelSerializer):
         validated_data['file_path'] = file
         validated_data['status'] = 'PROCESSING'
         validated_data['uploader'] = self.context['request'].user
+        return super().create(validated_data)
+
+class DoubtBoardCommentSerializer(serializers.ModelSerializer):
+    user = UserDetailSerializer(read_only=True)
+    replies = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DoubtBoardComment
+        fields = ('id', 'resource', 'user', 'parent', 'content', 'is_solved', 'created_at', 'replies')
+        read_only_fields = ('id', 'user', 'is_solved', 'created_at')
+
+    def get_replies(self, obj):
+        replies = obj.replies.all().order_by('created_at')
+        return DoubtBoardCommentSerializer(replies, many=True, context=self.context).data
+
+    def validate(self, data):
+        parent = data.get('parent')
+        resource = data.get('resource')
+        if parent and parent.resource != resource:
+            raise serializers.ValidationError({"parent": "Parent comment must belong to the same resource."})
+        return data
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
