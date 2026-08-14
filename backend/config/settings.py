@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'vault.apps.VaultConfig',
     'market.apps.MarketConfig',
     'core.apps.CoreConfig',
+    'rag.apps.RagConfig',
 ]
 
 MIDDLEWARE = [
@@ -218,4 +219,8 @@ CELERY_TASK_ROUTES = {
     'vault.tasks.process_pdf_document_task': {'queue': 'ingestion'},
     'market.tasks.dispatch_marketplace_alerts_task': {'queue': 'notifications'},
 }
+
+# Gemini Configuration
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+
 

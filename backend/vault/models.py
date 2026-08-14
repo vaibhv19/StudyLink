@@ -78,3 +78,89 @@ class DoubtBoardComment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.user.email} on {self.resource.title}"
+
+
+# RAG Vector DB Compatibility Layer
+import json
+from django.db import connection
+
+try:
+    from pgvector.django import VectorField as BaseVectorField
+    from pgvector.django import HnswIndex as BaseHnswIndex
+except ImportError:
+    class BaseVectorField(models.Field):
+        def __init__(self, *args, dimensions=None, **kwargs):
+            self.dimensions = dimensions
+            super().__init__(*args, **kwargs)
+
+    class BaseHnswIndex(models.Index):
+        pass
+
+
+class CompatibleVectorField(BaseVectorField):
+    def db_type(self, connection):
+        if connection.vendor == 'sqlite':
+            return 'TEXT'
+        return super().db_type(connection)
+
+    def from_db_value(self, value, expression, connection):
+        if connection.vendor == 'sqlite':
+            if value is None:
+                return value
+            if isinstance(value, str):
+                try:
+                    return json.loads(value)
+                except json.JSONDecodeError:
+                    return [float(x) for x in value.split(',') if x.strip()]
+        if hasattr(super(), 'from_db_value'):
+            return super().from_db_value(value, expression, connection)
+        return value
+
+    def to_python(self, value):
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except json.JSONDecodeError:
+                return [float(x) for x in value.split(',') if x.strip()]
+        if hasattr(super(), 'to_python'):
+            return super().to_python(value)
+        return value
+
+    def get_prep_value(self, value):
+        if connection.vendor == 'sqlite':
+            if value is None:
+                return value
+            return json.dumps(list(value))
+        return super().get_prep_value(value)
+
+
+class CompatibleHnswIndex(BaseHnswIndex):
+    def create_sql(self, model, schema_editor, using=''):
+        if schema_editor.connection.vendor == 'sqlite':
+            return models.Index(fields=self.fields, name=self.name).create_sql(model, schema_editor, using)
+        return super().create_sql(model, schema_editor, using)
+
+
+class ResourceChunk(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    resource = models.ForeignKey(
+        Resource,
+        on_delete=models.CASCADE,
+        related_name="chunks"
+    )
+    content = models.TextField()
+    page_number = models.IntegerField()
+    embedding = CompatibleVectorField(dimensions=768)
+
+    class Meta:
+        indexes = [
+            CompatibleHnswIndex(
+                name="resource_chunks_hnsw_idx",
+                fields=["embedding"],
+                opclasses=["vector_cosine_ops"],
+            )
+        ]
+
+    def __str__(self):
+        return f"Chunk of {self.resource.title} (Page {self.page_number})"
+

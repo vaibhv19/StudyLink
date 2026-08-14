@@ -3,6 +3,12 @@
 import os
 import sys
 
+# Disable C-extension for protobuf on Python 3.14 to avoid metaclass tp_new TypeError
+sys.modules['google._upb._message'] = None
+os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
+
+
+
 
 def main():
     """Run administrative tasks."""
