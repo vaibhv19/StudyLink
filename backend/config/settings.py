@@ -160,11 +160,19 @@ else:
     }
 
 # CORS configuration
-CORS_ALLOWED_ORIGINS = os.environ.get(
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+
+cors_origins_raw = os.environ.get(
     'CORS_ALLOWED_ORIGINS',
     'http://localhost:5173,http://127.0.0.1:5173'
-).split(',')
-CORS_ALLOW_CREDENTIALS = True
+)
+CORS_ALLOWED_ORIGINS = [orig.strip() for orig in cors_origins_raw.split(',') if orig.strip()]
+
+CORS_ALLOWED_ORIGIN_REGEXES = []
+if os.environ.get('CORS_ALLOW_VERCEL_PREVIEWS', 'False').lower() == 'true':
+    CORS_ALLOWED_ORIGIN_REGEXES.append(r"^https:\/\/.*\.vercel\.app$")
+
 
 # Django REST Framework
 REST_FRAMEWORK = {
