@@ -10,8 +10,8 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # Custom apps endpoints placeholders
-    # path('api/v1/auth/', include('accounts.urls')),
+    # Custom apps endpoints
+    path('api/v1/auth/', include('accounts.urls')),
     # path('api/v1/vault/', include('vault.urls')),
     # path('api/v1/market/', include('market.urls')),
 ]

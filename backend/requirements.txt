@@ -6,3 +6,4 @@ django-storages[s3]>=1.14,<1.15
 python-dotenv>=1.0,<1.1
 psycopg[binary]>=3.1
 django-cors-headers>=4.3,<4.4
+requests>=2.31,<2.33
