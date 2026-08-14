@@ -3,6 +3,8 @@ from core.serializers import SubjectSerializer, CourseSerializer
 from accounts.serializers import UserDetailSerializer
 from market.models import Listing
 
+from core.models import Subject, Course
+
 class ListingSerializer(serializers.ModelSerializer):
     owner = UserDetailSerializer(read_only=True)
     subject = SubjectSerializer(read_only=True)
@@ -31,3 +33,29 @@ class ListingSerializer(serializers.ModelSerializer):
         if request and request.user and request.user.is_authenticated:
             return obj.requests.filter(requester=request.user).exists()
         return False
+
+class ListingCreateSerializer(serializers.ModelSerializer):
+    photo = serializers.FileField(write_only=True)
+    subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all(), required=False, allow_null=True)
+    course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all(), required=False, allow_null=True)
+
+    class Meta:
+        model = Listing
+        fields = ('id', 'title', 'photo', 'pickup_area', 'condition', 'subject', 'course', 'status', 'is_active')
+        read_only_fields = ('id', 'status', 'is_active')
+
+    def validate(self, data):
+        subject = data.get('subject')
+        course = data.get('course')
+        if course and subject and course.subject != subject:
+            raise serializers.ValidationError({"course": "The course must belong to the selected subject."})
+        return data
+
+    def create(self, validated_data):
+        photo = validated_data.pop('photo')
+        validated_data['photo_url'] = photo
+        validated_data['status'] = 'AVAILABLE'
+        validated_data['is_active'] = True
+        validated_data['owner'] = self.context['request'].user
+        return super().create(validated_data)
+

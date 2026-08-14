@@ -1,13 +1,24 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
 from django.db.models import Subquery, OuterRef
 from django.utils import timezone
 from datetime import timedelta
 from market.models import Listing, ListingStatusHistory
-from market.serializers import ListingSerializer
+from market.serializers import ListingSerializer, ListingCreateSerializer
 
-class ListingListCreateView(generics.ListAPIView):
-    serializer_class = ListingSerializer
-    permission_classes = [permissions.AllowAny]
+class ListingListCreateView(generics.ListCreateAPIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return ListingCreateSerializer
+        return ListingSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
 
     def get_queryset(self):
         # Subquery to find the latest GIVEN_AWAY transition time for each listing
@@ -44,6 +55,13 @@ class ListingListCreateView(generics.ListAPIView):
             queryset = queryset.filter(condition=condition)
 
         return queryset.order_by('-id')
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        listing = serializer.save()
+        response_serializer = ListingSerializer(listing, context=self.get_serializer_context())
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 class ListingDetailView(generics.RetrieveAPIView):
     queryset = Listing.objects.filter(is_active=True)
