@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'vault.apps.VaultConfig',
     'market.apps.MarketConfig',
     'core.apps.CoreConfig',
+    'notifications.apps.NotificationsConfig',
 ]
 
 MIDDLEWARE = [
