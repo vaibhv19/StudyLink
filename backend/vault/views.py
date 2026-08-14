@@ -1,9 +1,12 @@
+from django.db import transaction
+from django.db.models import F
 from rest_framework import generics, status
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from core.pagination import StandardResultsSetPagination
-from vault.models import Resource
+from vault.models import Resource, ResourceUpvote
 from vault.serializers import ResourceUploadSerializer, ResourceSerializer
 
 class ResourceListCreateView(generics.ListCreateAPIView):
@@ -45,3 +48,46 @@ class ResourceDetailView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = ResourceSerializer
     queryset = Resource.objects.filter(is_active=True).select_related('uploader', 'subject', 'course')
+
+class UpvoteToggleView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, id):
+        try:
+            resource = Resource.objects.get(id=id, is_active=True)
+        except Resource.DoesNotExist:
+            return Response(
+                {"code": "not_found", "message": "Resource not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # A user cannot upvote their own resource (403 Forbidden)
+        if resource.uploader == request.user:
+            return Response(
+                {
+                    "code": "self_upvote_forbidden",
+                    "message": "You cannot upvote your own resource."
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        with transaction.atomic():
+            upvote_qs = ResourceUpvote.objects.filter(resource=resource, user=request.user)
+            if upvote_qs.exists():
+                upvote_qs.delete()
+                resource.upvote_count = F('upvote_count') - 1
+                resource.save(update_fields=['upvote_count'])
+                has_upvoted = False
+            else:
+                ResourceUpvote.objects.create(resource=resource, user=request.user)
+                resource.upvote_count = F('upvote_count') + 1
+                resource.save(update_fields=['upvote_count'])
+                has_upvoted = True
+
+        # Refresh the resource count from DB to return the correct count value
+        resource.refresh_from_db()
+
+        return Response({
+            "upvote_count": resource.upvote_count,
+            "has_upvoted": has_upvoted
+        }, status=status.HTTP_200_OK)
