@@ -17,6 +17,7 @@ urlpatterns = [
     path('api/v1/core/', include('core.urls')),
     path('api/v1/vault/', include('vault.urls')),
     path('api/v1/market/', include('market.urls')),
+    path('api/v1/chat/', include('rag.urls')),
     path('api/v1/dashboard/owner/', OwnerDashboardView.as_view(), name='owner-dashboard'),
 ]
 
