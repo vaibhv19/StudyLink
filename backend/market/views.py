@@ -9,9 +9,10 @@ from market.serializers import ListingSerializer, ListingCreateSerializer
 
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
-from django.db import IntegrityError
+from django.db import transaction, IntegrityError
 from market.models import Listing, ListingRequest, ListingStatusHistory
 from market.serializers import ListingSerializer, ListingCreateSerializer, ListingRequestSerializer
+from notifications.tasks import send_notification_task
 
 class ListingListCreateView(generics.ListCreateAPIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -108,6 +109,16 @@ class RequestItemView(APIView):
             )
         except IntegrityError:
             raise ValidationError("You have already requested this item.")
+
+        owner_id = str(listing.owner_id)
+        user_name = request.user.full_name or request.user.email
+        listing_title = listing.title
+        transaction.on_commit(lambda: send_notification_task.delay(
+            owner_id,
+            'NEW_REQUEST',
+            f"New request for {listing_title}",
+            f"{user_name} has requested your item: {listing_title}."
+        ))
 
         serializer = ListingRequestSerializer(listing_request, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
