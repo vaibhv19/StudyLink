@@ -65,3 +65,14 @@ class ListingRequestSerializer(serializers.ModelSerializer):
         model = ListingRequest
         fields = ('id', 'listing', 'requester', 'status', 'created_at')
         read_only_fields = ('id', 'listing', 'requester', 'status', 'created_at')
+
+from market.models import ListingStatusHistory
+
+class ListingStatusHistorySerializer(serializers.ModelSerializer):
+    changed_by = UserDetailSerializer(read_only=True)
+
+    class Meta:
+        model = ListingStatusHistory
+        fields = ('id', 'listing', 'from_status', 'to_status', 'changed_by', 'reason', 'changed_at')
+        read_only_fields = fields
+

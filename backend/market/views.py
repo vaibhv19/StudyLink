@@ -111,3 +111,69 @@ class RequestItemView(APIView):
 
         serializer = ListingRequestSerializer(listing_request, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class AcceptRequestView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, id):
+        return self._handle_accept(request, id)
+
+    def patch(self, request, id):
+        return self._handle_accept(request, id)
+
+    def _handle_accept(self, request, id):
+        from market.services import accept_request
+        request_obj = accept_request(request.user, id)
+        serializer = ListingRequestSerializer(request_obj, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class CancelRequestView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, id):
+        return self._handle_cancel(request, id)
+
+    def patch(self, request, id):
+        return self._handle_cancel(request, id)
+
+    def _handle_cancel(self, request, id):
+        from market.services import cancel_request
+        request_obj = cancel_request(request.user, id)
+        serializer = ListingRequestSerializer(request_obj, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class CompleteHandoffView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, id):
+        return self._handle_complete(request, id)
+
+    def patch(self, request, id):
+        return self._handle_complete(request, id)
+
+    def _handle_complete(self, request, id):
+        from market.services import complete_handoff
+        listing = complete_handoff(request.user, id)
+        serializer = ListingSerializer(listing, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+from rest_framework.exceptions import NotFound, PermissionDenied
+from market.serializers import ListingStatusHistorySerializer
+
+class ListingHistoryView(generics.ListAPIView):
+    serializer_class = ListingStatusHistorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        listing_id = self.kwargs.get('id')
+        try:
+            listing = Listing.objects.get(id=listing_id, is_active=True)
+        except Listing.DoesNotExist:
+            raise NotFound("Listing not found.")
+
+        # Enforce that only the listing owner can view history
+        if listing.owner != self.request.user:
+            raise PermissionDenied("You do not have permission to view the history of this listing.")
+
+        return ListingStatusHistory.objects.filter(listing=listing).select_related('changed_by').order_by('changed_at')
+
