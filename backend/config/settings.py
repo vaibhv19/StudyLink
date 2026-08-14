@@ -88,10 +88,11 @@ DATABASES = {
     )
 }
 
-# Set connection timeouts
-DB_CONN_TIMEOUT = int(os.environ.get('DB_CONN_TIMEOUT', '30'))
-DATABASES['default']['OPTIONS'] = DATABASES['default'].get('OPTIONS', {})
-DATABASES['default']['OPTIONS']['connect_timeout'] = DB_CONN_TIMEOUT
+# Set connection timeouts only for PostgreSQL
+if 'postgresql' in DATABASES['default']['ENGINE']:
+    DB_CONN_TIMEOUT = int(os.environ.get('DB_CONN_TIMEOUT', '30'))
+    DATABASES['default']['OPTIONS'] = DATABASES['default'].get('OPTIONS', {})
+    DATABASES['default']['OPTIONS']['connect_timeout'] = DB_CONN_TIMEOUT
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -120,6 +121,8 @@ STATIC_URL = 'static/'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # django-storages S3 configuration templates
 USE_S3 = os.environ.get('USE_S3', 'False').lower() == 'true'
@@ -189,3 +192,11 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
 }
+
+# OAuth Provider Configuration
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', 'placeholder-google-client-id')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', 'placeholder-google-client-secret')
+GOOGLE_REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI', 'http://localhost:5173/auth/google/callback')
+
+GITHUB_CLIENT_ID = os.environ.get('GITHUB_CLIENT_ID', 'placeholder-github-client-id')
+GITHUB_CLIENT_SECRET = os.environ.get('GITHUB_CLIENT_SECRET', 'placeholder-github-client-secret')
