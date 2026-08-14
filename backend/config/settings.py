@@ -204,3 +204,18 @@ GOOGLE_REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI', 'http://localhost:51
 
 GITHUB_CLIENT_ID = os.environ.get('GITHUB_CLIENT_ID', 'placeholder-github-client-id')
 GITHUB_CLIENT_SECRET = os.environ.get('GITHUB_CLIENT_SECRET', 'placeholder-github-client-secret')
+
+# Celery Configurations
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://127.0.0.1:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://127.0.0.1:6379/0')
+
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+
+CELERY_TASK_DEFAULT_QUEUE = 'default'
+CELERY_TASK_ROUTES = {
+    'vault.tasks.process_pdf_document_task': {'queue': 'ingestion'},
+    'market.tasks.dispatch_marketplace_alerts_task': {'queue': 'notifications'},
+}
+
