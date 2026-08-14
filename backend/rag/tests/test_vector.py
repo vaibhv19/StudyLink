@@ -12,7 +12,7 @@ from google.api_core.exceptions import ResourceExhausted
 from vault.models import Resource, ResourceChunk, Subject, Course
 from vault.tasks import process_pdf_document_task
 from rag.client import GeminiClient
-from rag.search import VectorSearchService
+from rag.search import VectorSearchService, RAGAnswerService
 
 User = get_user_model()
 
@@ -214,3 +214,32 @@ class VectorSearchTests(TestCase):
         # 4. Valid distances
         self.assertAlmostEqual(results[0][1], 0.0) # Exact match distance is 0
         self.assertTrue(results[4][1] > results[0][1])
+
+    @patch('rag.search.GeminiClient.generate_answer')
+    @patch('rag.search.GeminiClient.get_embedding')
+    def test_answer_query_cutoff_triggers_rejection(self, mock_get_embedding, mock_generate_answer):
+        # Mock query vector to have very low similarity (< 0.65 similarity, i.e., > 0.35 distance)
+        mock_get_embedding.return_value = [0.0] * 768
+
+        response = RAGAnswerService.answer_query(self.resource_a.id, "What is Calculus?")
+
+        # Assert fallback is triggered
+        self.assertEqual(response['answer'], "I couldn't find any relevant information in this specific document to answer that.")
+        self.assertEqual(response['citations'], [])
+        
+        # Verify LLM generation is bypassed
+        mock_generate_answer.assert_not_called()
+
+    @patch('rag.search.GeminiClient.generate_answer')
+    @patch('rag.search.GeminiClient.get_embedding')
+    def test_answer_query_strong_match_calls_llm(self, mock_get_embedding, mock_generate_answer):
+        # Mock query vector to have exact match
+        mock_get_embedding.return_value = [1.0] + [0.0] * 767
+        mock_generate_answer.return_value = "Derivatives measure rate of change [Page 1]."
+
+        response = RAGAnswerService.answer_query(self.resource_a.id, "What is derivative?")
+
+        # Assert LLM was called and cited answer returned
+        self.assertEqual(response['answer'], "Derivatives measure rate of change [Page 1].")
+        self.assertEqual(response['citations'], [1, 2, 3, 4, 5])
+        mock_generate_answer.assert_called_once()
