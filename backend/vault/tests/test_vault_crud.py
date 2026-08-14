@@ -71,6 +71,10 @@ class ResourceVaultCrudTests(APITestCase):
         self.assertEqual(resource.status, 'PROCESSING')
         self.assertTrue(resource.file_path.name.startswith('notes'))
         self.assertTrue(resource.file_path.name.endswith('.pdf'))
+        
+        # Verify custom storage class is used
+        from vault.storage import ResourceStorage
+        self.assertIsInstance(resource.file_path.storage, ResourceStorage)
 
     def test_upload_resource_not_pdf_fails(self):
         self.client.force_authenticate(user=self.user)
