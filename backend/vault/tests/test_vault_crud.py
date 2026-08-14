@@ -134,3 +134,106 @@ class ResourceVaultCrudTests(APITestCase):
 
         response = self.client.post(self.list_create_url, data, format='multipart')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_list_resources_active_only(self):
+        # Create an active resource and an inactive resource
+        Resource.objects.create(
+            uploader=self.user,
+            title='Active Math Notes',
+            file_path='math.pdf',
+            subject=self.other_subject,
+            course=self.other_course,
+            status='READY',
+            is_active=True
+        )
+        Resource.objects.create(
+            uploader=self.user,
+            title='Inactive CS Notes',
+            file_path='cs.pdf',
+            subject=self.subject,
+            course=self.course,
+            status='READY',
+            is_active=False
+        )
+
+        # GET request (unauthenticated should work because list is public)
+        response = self.client.get(self.list_create_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Verify pagination structure
+        self.assertIn('results', response.data)
+        results = response.data['results']
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]['title'], 'Active Math Notes')
+
+    def test_list_resources_filtering(self):
+        # Create two resources
+        r_cs = Resource.objects.create(
+            uploader=self.user,
+            title='CS101 Intro Notes',
+            file_path='cs.pdf',
+            subject=self.subject,
+            course=self.course,
+            status='READY',
+            is_active=True
+        )
+        r_math = Resource.objects.create(
+            uploader=self.user,
+            title='Calculus I Notes',
+            file_path='math.pdf',
+            subject=self.other_subject,
+            course=self.other_course,
+            status='READY',
+            is_active=True
+        )
+
+        # Filter by subject slug
+        response = self.client.get(self.list_create_url, {'subject': 'math'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['title'], 'Calculus I Notes')
+
+        # Filter by course code
+        response = self.client.get(self.list_create_url, {'course': 'CS101'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['title'], 'CS101 Intro Notes')
+
+        # Filter by text search
+        response = self.client.get(self.list_create_url, {'search': 'Calculus'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['title'], 'Calculus I Notes')
+
+    def test_retrieve_resource_detail(self):
+        resource = Resource.objects.create(
+            uploader=self.user,
+            title='Calculus I Notes',
+            file_path='math.pdf',
+            subject=self.other_subject,
+            course=self.other_course,
+            status='READY',
+            is_active=True
+        )
+        detail_url = reverse('resource-detail', kwargs={'pk': resource.id})
+        
+        # Public GET request
+        response = self.client.get(detail_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['title'], 'Calculus I Notes')
+        self.assertEqual(response.data['status'], 'READY')
+
+    def test_retrieve_inactive_resource_fails(self):
+        resource = Resource.objects.create(
+            uploader=self.user,
+            title='Calculus I Notes',
+            file_path='math.pdf',
+            subject=self.other_subject,
+            course=self.other_course,
+            status='READY',
+            is_active=False
+        )
+        detail_url = reverse('resource-detail', kwargs={'pk': resource.id})
+        
+        response = self.client.get(detail_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
