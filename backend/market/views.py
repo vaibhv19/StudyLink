@@ -177,3 +177,45 @@ class ListingHistoryView(generics.ListAPIView):
 
         return ListingStatusHistory.objects.filter(listing=listing).select_related('changed_by').order_by('changed_at')
 
+class OwnerDashboardView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        # Fetch user's listings, prefetching requests and their requesters to avoid N+1 queries
+        listings = Listing.objects.filter(owner=request.user, is_active=True).prefetch_related('requests__requester').order_by('-id')
+        
+        my_listings_data = []
+        for l in listings:
+            reqs = l.requests.all().order_by('-created_at')
+            recent_reqs_data = []
+            for r in reqs:
+                recent_reqs_data.append({
+                    "id": str(r.id),
+                    "user_name": r.requester.full_name,
+                    "created_at": r.created_at.isoformat()
+                })
+            
+            my_listings_data.append({
+                "id": str(l.id),
+                "title": l.title,
+                "status": l.status,
+                "request_count": reqs.count(),
+                "recent_requests": recent_reqs_data
+            })
+
+        # Fetch requests sent by the active user to other listings
+        active_requests = ListingRequest.objects.filter(requester=request.user).select_related('listing').order_by('-created_at')
+        my_active_requests_data = []
+        for ar in active_requests:
+            my_active_requests_data.append({
+                "listing_id": str(ar.listing.id),
+                "listing_title": ar.listing.title,
+                "status": ar.status
+            })
+
+        return Response({
+            "my_listings": my_listings_data,
+            "my_active_requests": my_active_requests_data
+        }, status=status.HTTP_200_OK)
+
+
