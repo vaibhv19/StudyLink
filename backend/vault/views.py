@@ -9,6 +9,7 @@ from rest_framework.exceptions import PermissionDenied
 from core.pagination import StandardResultsSetPagination
 from vault.models import Resource, ResourceUpvote, DoubtBoardComment
 from vault.serializers import ResourceUploadSerializer, ResourceSerializer, DoubtBoardCommentSerializer
+from notifications.tasks import send_notification_task
 
 class ResourceListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -88,6 +89,17 @@ class UpvoteToggleView(APIView):
         # Refresh the resource count from DB to return the correct count value
         resource.refresh_from_db()
 
+        if has_upvoted and resource.uploader != request.user:
+            uploader_id = str(resource.uploader_id)
+            user_name = request.user.full_name or request.user.email
+            resource_title = resource.title
+            transaction.on_commit(lambda: send_notification_task.delay(
+                uploader_id,
+                'UPVOTE_RECEIVED',
+                f"New upvote on {resource_title}",
+                f"{user_name} upvoted your study resource '{resource_title}'."
+            ))
+
         return Response({
             "upvote_count": resource.upvote_count,
             "has_upvoted": has_upvoted
@@ -121,6 +133,29 @@ class CommentListCreateView(generics.ListCreateAPIView):
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         comment = serializer.save()
+
+        # Trigger notification to resource uploader
+        user_name = request.user.full_name or request.user.email
+        resource_title = resource.title
+        if resource.uploader != request.user:
+            uploader_id = str(resource.uploader_id)
+            transaction.on_commit(lambda: send_notification_task.delay(
+                uploader_id,
+                'NEW_COMMENT',
+                f"New comment on {resource_title}",
+                f"{user_name} commented on your study resource '{resource_title}'."
+            ))
+
+        # If replying to a parent comment, notify parent comment author
+        if comment.parent and comment.parent.user != request.user and comment.parent.user != resource.uploader:
+            parent_user_id = str(comment.parent.user_id)
+            transaction.on_commit(lambda puid=parent_user_id: send_notification_task.delay(
+                puid,
+                'NEW_COMMENT',
+                f"New reply on {resource_title}",
+                f"{user_name} replied to your comment on '{resource_title}'."
+            ))
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class CommentDetailView(APIView):
