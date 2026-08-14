@@ -7,6 +7,8 @@ The `urlpatterns` list routes URLs to views. For more information please see:
 from django.contrib import admin
 from django.urls import path, include
 
+from market.views import OwnerDashboardView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     
@@ -14,5 +16,7 @@ urlpatterns = [
     path('api/v1/auth/', include('accounts.urls')),
     path('api/v1/core/', include('core.urls')),
     path('api/v1/vault/', include('vault.urls')),
-    # path('api/v1/market/', include('market.urls')),
+    path('api/v1/market/', include('market.urls')),
+    path('api/v1/dashboard/owner/', OwnerDashboardView.as_view(), name='owner-dashboard'),
 ]
+
