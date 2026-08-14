@@ -1,7 +1,9 @@
 from django.urls import path
-from market.views import ListingListCreateView, ListingDetailView
+from market.views import ListingListCreateView, ListingDetailView, RequestItemView
 
 urlpatterns = [
     path('', ListingListCreateView.as_view(), name='listing-list-create'),
     path('<uuid:id>/', ListingDetailView.as_view(), name='listing-detail'),
+    path('<uuid:id>/request/', RequestItemView.as_view(), name='request-item'),
 ]
+

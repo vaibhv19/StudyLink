@@ -7,6 +7,12 @@ from datetime import timedelta
 from market.models import Listing, ListingStatusHistory
 from market.serializers import ListingSerializer, ListingCreateSerializer
 
+from rest_framework.views import APIView
+from rest_framework.exceptions import ValidationError
+from django.db import IntegrityError
+from market.models import Listing, ListingRequest, ListingStatusHistory
+from market.serializers import ListingSerializer, ListingCreateSerializer, ListingRequestSerializer
+
 class ListingListCreateView(generics.ListCreateAPIView):
     parser_classes = (MultiPartParser, FormParser)
 
@@ -69,3 +75,39 @@ class ListingDetailView(generics.RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
     lookup_field = 'id'
     lookup_url_kwarg = 'id'
+
+class RequestItemView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, id):
+        try:
+            listing = Listing.objects.get(id=id, is_active=True)
+        except Listing.DoesNotExist:
+            return Response(
+                {"code": "not_found", "message": "Listing not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # 1. Requester cannot be the listing owner
+        if listing.owner == request.user:
+            raise ValidationError("You cannot request your own listing.")
+
+        # 2. Listing must be AVAILABLE
+        if listing.status != 'AVAILABLE':
+            raise ValidationError("This listing is no longer available.")
+
+        # 3. Duplicate request is rejected
+        if ListingRequest.objects.filter(listing=listing, requester=request.user).exists():
+            raise ValidationError("You have already requested this item.")
+
+        try:
+            listing_request = ListingRequest.objects.create(
+                listing=listing,
+                requester=request.user,
+                status='PENDING'
+            )
+        except IntegrityError:
+            raise ValidationError("You have already requested this item.")
+
+        serializer = ListingRequestSerializer(listing_request, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

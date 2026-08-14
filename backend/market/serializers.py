@@ -1,9 +1,8 @@
 from rest_framework import serializers
+from core.models import Subject, Course
 from core.serializers import SubjectSerializer, CourseSerializer
 from accounts.serializers import UserDetailSerializer
-from market.models import Listing
-
-from core.models import Subject, Course
+from market.models import Listing, ListingRequest
 
 class ListingSerializer(serializers.ModelSerializer):
     owner = UserDetailSerializer(read_only=True)
@@ -59,3 +58,10 @@ class ListingCreateSerializer(serializers.ModelSerializer):
         validated_data['owner'] = self.context['request'].user
         return super().create(validated_data)
 
+class ListingRequestSerializer(serializers.ModelSerializer):
+    requester = UserDetailSerializer(read_only=True)
+
+    class Meta:
+        model = ListingRequest
+        fields = ('id', 'listing', 'requester', 'status', 'created_at')
+        read_only_fields = ('id', 'listing', 'requester', 'status', 'created_at')
