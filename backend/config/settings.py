@@ -220,3 +220,7 @@ CELERY_TASK_ROUTES = {
     'market.tasks.dispatch_marketplace_alerts_task': {'queue': 'notifications'},
 }
 
+# Gemini Configuration
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+
+
