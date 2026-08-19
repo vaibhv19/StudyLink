@@ -9,4 +9,5 @@ class ResourceStorage(S3Storage if getattr(settings, 'USE_S3', False) else FileS
             kwargs['location'] = 'resources'
         else:
             kwargs['location'] = os.path.join(settings.MEDIA_ROOT, 'resources')
+            kwargs['base_url'] = settings.MEDIA_URL + 'resources/'
         super().__init__(*args, **kwargs)
