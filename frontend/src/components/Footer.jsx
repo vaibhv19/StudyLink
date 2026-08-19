@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className="bg-white border-t border-slate-200 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 font-medium">
         <div className="flex items-center space-x-2">
-          <span className="font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-sm">
+          <span className="font-bold text-slate-800 text-sm">
             StudyLink
           </span>
           <span>&copy; {new Date().getFullYear()} Digital Campus Platform</span>

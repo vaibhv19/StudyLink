@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -16,10 +16,13 @@ import Dashboard from './pages/Dashboard';
 import OwnerDashboard from './pages/OwnerDashboard';
 
 export default function App() {
+  const location = useLocation();
+  const isAuthPage = location.pathname === '/auth';
+
   return (
     <div className="min-h-screen bg-slate-50/50 flex flex-col font-sans text-slate-800 antialiased selection:bg-primary/20 selection:text-primary">
-      <Navbar />
-      <main className="flex-grow">
+      {!isAuthPage && <Navbar />}
+      <main className="flex-grow flex flex-col">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/auth" element={<Auth />} />
@@ -51,7 +54,8 @@ export default function App() {
           />
         </Routes>
       </main>
-      <Footer />
+      {!isAuthPage && <Footer />}
     </div>
   );
 }
+
