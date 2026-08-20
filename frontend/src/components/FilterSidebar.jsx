@@ -21,8 +21,8 @@ export default function FilterSidebar({ className = '' }) {
     async function loadMetadata() {
       try {
         const [subjRes, courseRes] = await Promise.all([
-          apiClient.get('/core/subjects/'),
-          apiClient.get('/core/courses/'),
+          apiClient.get('/core/subjects/', { params: { page_size: 100 } }),
+          apiClient.get('/core/courses/', { params: { page_size: 100 } }),
         ]);
 
         if (isMounted) {

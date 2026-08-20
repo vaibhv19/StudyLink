@@ -12,13 +12,14 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-200/80 transition-all duration-300">
+    <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
+        <div className="flex justify-between h-14 items-center">
           <div className="flex items-center space-x-8">
             <Link to="/" className="flex items-center space-x-2">
-              <span className="text-2xl font-black bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent tracking-tight font-sans">
-                StudyLink
+              <span className="text-lg font-bold text-slate-900 tracking-tight font-sans flex items-center gap-1.5">
+                <span className="w-6 h-6 rounded bg-indigo-600 text-white flex items-center justify-center text-xs font-black">S</span>
+                <span>StudyLink</span>
               </span>
             </Link>
             <nav className="hidden md:flex space-x-1">
