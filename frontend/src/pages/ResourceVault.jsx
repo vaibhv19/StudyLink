@@ -38,7 +38,7 @@ export default function ResourceVault() {
     setError('');
 
     try {
-      const params = {};
+      const params = { page_size: 1000 };
       if (subject) params.subject = subject;
       if (course) params.course = course;
       if (search) params.search = search;
@@ -64,8 +64,8 @@ export default function ResourceVault() {
     async function loadMeta() {
       try {
         const [subjRes, courseRes] = await Promise.all([
-          apiClient.get('/core/subjects/'),
-          apiClient.get('/core/courses/'),
+          apiClient.get('/core/subjects/', { params: { page_size: 100 } }),
+          apiClient.get('/core/courses/', { params: { page_size: 100 } }),
         ]);
         const subjectsData = Array.isArray(subjRes.data)
           ? subjRes.data

@@ -17,7 +17,10 @@ class GeminiClient:
     def get_embedding(cls, text):
         cls.configure()
         api_key = getattr(settings, 'GEMINI_API_KEY', '')
-        if not api_key:
+        import sys
+        is_testing = 'test' in sys.argv or getattr(settings, 'TESTING', False)
+        
+        if not api_key and not is_testing:
             import logging
             logger = logging.getLogger(__name__)
             logger.warning("GEMINI_API_KEY is not configured. Falling back to dummy embedding.")
@@ -31,6 +34,8 @@ class GeminiClient:
             )
             return response['embedding']
         except Exception as e:
+            if is_testing:
+                raise e
             import logging
             logger = logging.getLogger(__name__)
             logger.warning("Gemini embedding generation failed: %s. Falling back to dummy embedding.", str(e))
