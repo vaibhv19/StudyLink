@@ -83,7 +83,7 @@ class CeleryIngestionTaskTests(TestCase):
         self.assertEqual(chunks.count(), 1)
         self.assertEqual(chunks[0].content, "This is some PDF text to split.")
         self.assertEqual(chunks[0].page_number, 1)
-        self.assertEqual(chunks[0].embedding, [0.1] * 768)
+        self.assertEqual(list(chunks[0].embedding), [0.1] * 768)
 
     @patch('vault.services.PdfReader')
     @patch('django.core.files.storage.Storage.open')
@@ -219,7 +219,7 @@ class VectorSearchTests(TestCase):
     @patch('rag.search.GeminiClient.get_embedding')
     def test_answer_query_cutoff_triggers_rejection(self, mock_get_embedding, mock_generate_answer):
         # Mock query vector to have very low similarity (< 0.65 similarity, i.e., > 0.35 distance)
-        mock_get_embedding.return_value = [0.0] * 768
+        mock_get_embedding.return_value = [0.0, 0.0, 1.0] + [0.0] * 765
 
         response = RAGAnswerService.answer_query(self.resource_a.id, "What is Calculus?")
 

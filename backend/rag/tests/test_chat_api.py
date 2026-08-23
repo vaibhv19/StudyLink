@@ -138,7 +138,7 @@ class ChatAPITests(TestCase):
     @patch('rag.search.GeminiClient.get_embedding')
     def test_low_similarity_triggers_fallback_refusal(self, mock_get_embedding, mock_generate_answer):
         # Orthogonal embedding -> similarity 0.0 (< 0.65)
-        mock_get_embedding.return_value = [0.0] * 768
+        mock_get_embedding.return_value = [0.0, 0.0, 1.0] + [0.0] * 765
 
         response = self.client.post(self.url, {
             "resource_id": str(self.ready_resource.id),

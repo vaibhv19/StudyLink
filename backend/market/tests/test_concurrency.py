@@ -45,7 +45,7 @@ class ConcurrencyTests(APITransactionTestCase):
         self.req2 = ListingRequest.objects.create(listing=self.listing, requester=self.buyer2, status='PENDING')
         self.req3 = ListingRequest.objects.create(listing=self.listing, requester=self.buyer3, status='PENDING')
 
-    @patch('market.services.send_notification_task.delay')
+    @patch('market.services.send_notification_sync')
     def test_concurrent_accept_requests(self, mock_notify):
         """
         Verify that multiple concurrent threads attempting to accept different requests
@@ -113,7 +113,7 @@ class ConcurrencyTests(APITransactionTestCase):
         self.assertEqual(len(accepted_reqs), 1)
         self.assertEqual(len(rejected_reqs), 2)
 
-    @patch('market.services.send_notification_task.delay')
+    @patch('market.services.send_notification_sync')
     def test_second_accept_attempt_returns_409_conflict(self, mock_notify):
         """
         Verify that attempting to accept a second request after the first has been accepted
