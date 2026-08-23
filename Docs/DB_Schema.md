@@ -11,11 +11,9 @@ This document defines the relational schema and vector storage architecture for 
      |                 |
      |                 * [doubt_board_comments]
      |
-     +--------- 1 ------ * [listings] 1 ------ * [listing_status_history]
-     |                       |
-     |                       1
-     |                       |
      +--------- 1 ------ * [requests]
+     |                       |
+     |                       * [listings] 1 ------ * [listing_status_history]
      |
      * [notifications]
 ```
@@ -24,7 +22,7 @@ This document defines the relational schema and vector storage architecture for 
 
 ## 2. Table Dictionary
 
-1.  **`users`**: Core identity table supporting JWT credentials and multiple OAuth providers.
+1.  **`users`**: Core identity table supporting JWT email/password credentials for v1.
 2.  **`resources`**: Metadata for digital vault items (PDFs/Notes) stored in Supabase Storage.
 3.  **`resource_chunks`**: Segmented text passages with high-dimensional embeddings for RAG.
 4.  **`doubt_board_comments`**: Threaded discussions localized to specific resources.
@@ -38,14 +36,14 @@ This document defines the relational schema and vector storage architecture for 
 ## 3. Table Definitions
 
 ### 3.1 `users`
+> [!NOTE]
+> **v1 Identity Scope:** The `users` table uses standard email/password fields with JWT authentication for v1. Provider and OAuth identifier columns (`provider`, `linked_google`, `linked_github` / `provider_user_id`) are deferred to v2. They can be added in a future non-breaking migration without requiring schema redesign or account-merging logic in v1.
+
 | Column | Type | Constraints | Description |
 | :--- | :--- | :--- | :--- |
 | `id` | `UUID` | PK | Primary identifier. |
 | `email` | `VARCHAR(255)` | UNIQUE, INDEX | Primary contact and login key. |
-| `password` | `VARCHAR(255)` | NULLABLE | Hash for email/password auth; nullable for OAuth-only accounts. |
-| `provider` | `VARCHAR(20)` | | Primary auth provider for the account (`local`, `google`, `github`). |
-| `linked_google` | `BOOLEAN` | DEFAULT FALSE | Whether the account is linked to Google OAuth. |
-| `linked_github` | `BOOLEAN` | DEFAULT FALSE | Whether the account is linked to GitHub OAuth. |
+| `password` | `VARCHAR(255)` | NOT NULL | Password hash for local email/password JWT auth. |
 | `full_name` | `VARCHAR(100)` | | User's display name. |
 | `avatar_url` | `TEXT` | | Link to profile photo. |
 
@@ -127,7 +125,7 @@ This document defines the relational schema and vector storage architecture for 
     - **Rationale**: Academic search is almost always centered on these two identifiers.
 4.  **Auth Speed (`users.email`)**:
     - **Type**: `B-Tree / Unique`.
-    - **Rationale**: Essential for rapid JWT token issuance and OAuth identity mapping during login.
+    - **Rationale**: Essential for rapid JWT token issuance and login lookup.
 
 ---
 
@@ -135,4 +133,4 @@ This document defines the relational schema and vector storage architecture for 
 
 - **Soft Deletion**: `resources` and `listings` use `is_active` rather than hard deletion to preserve the `listing_status_history` and `resource_chunks` for analytics.
 - **State Constraint**: `requests.status` cannot be set to `ACCEPTED` if the parent `listings.status` is already `REQUESTED` by another user (enforced via database transaction in the service layer).
-- **Notification Handling**: `notifications` are generated asynchronously via Celery tasks following marketplace and resource events, while preserving `resource_chunks` for existing RAG content.
+- **Notification Handling**: `notifications` are generated in-process upon marketplace and resource events, while preserving `resource_chunks` for existing RAG content.

@@ -77,23 +77,6 @@ export default function Auth() {
     }
   };
 
-  const handleOAuthRedirect = (provider) => {
-    const redirectUri = `${window.location.origin}/oauth-callback?provider=${provider}`;
-    if (provider === 'google') {
-      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'dummy-google-client-id';
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-        redirectUri
-      )}&response_type=code&scope=openid%20email%20profile&access_type=offline&prompt=consent`;
-      window.location.href = googleAuthUrl;
-    } else if (provider === 'github') {
-      const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID || 'dummy-github-client-id';
-      const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-        redirectUri
-      )}&scope=user:email`;
-      window.location.href = githubAuthUrl;
-    }
-  };
-
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-[#11151A] text-[#E9EAEC] font-sans">
       {/* Left Panel: StudyLink Product Positioning & Core Capabilities */}
@@ -309,52 +292,8 @@ export default function Auth() {
             </Button>
           </form>
 
-          {/* Restrained Divider */}
-          <div className="relative my-5">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#313645]" />
-            </div>
-            <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest">
-              <span className="bg-[#11151A] px-3 text-[#575D65]">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
-          {/* Social OAuth Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => handleOAuthRedirect('google')}
-              className="flex items-center justify-center space-x-2 px-3.5 py-2.5 bg-[#151A22] hover:bg-[#1A202A] border border-[#313645] rounded text-[#979DA5] hover:text-[#E9EAEC] text-xs font-semibold transition-colors"
-            >
-              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                <path
-                  fill="#E94832"
-                  d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.859-3.579-7.859-8s3.529-8 7.859-8c2.46 0 4.105 1.025 5.047 1.926l3.227-3.107C18.29 1.638 15.473 1 12.24 1 6.059 1 1.05 6.009 1.05 12.2s5.009 11.2 11.19 11.2c6.457 0 10.748-4.532 10.748-10.932 0-.737-.08-1.302-.177-1.883H12.24z"
-                />
-              </svg>
-              <span>Google</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleOAuthRedirect('github')}
-              className="flex items-center justify-center space-x-2 px-3.5 py-2.5 bg-[#151A22] hover:bg-[#1A202A] border border-[#313645] rounded text-[#979DA5] hover:text-[#E9EAEC] text-xs font-semibold transition-colors"
-            >
-              <svg className="w-4 h-4 fill-current shrink-0 text-[#E9EAEC]" viewBox="0 0 24 24">
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z"
-                />
-              </svg>
-              <span>GitHub</span>
-            </button>
-          </div>
-
           {/* Return Home Link */}
-          <div className="pt-2 text-center">
+          <div className="pt-4 border-t border-[#313645] text-center">
             <Link
               to="/"
               className="text-xs text-[#575D65] hover:text-[#979DA5] inline-flex items-center gap-1.5 transition-colors"
@@ -368,4 +307,3 @@ export default function Auth() {
     </div>
   );
 }
-

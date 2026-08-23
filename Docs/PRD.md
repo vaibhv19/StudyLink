@@ -1,8 +1,8 @@
 # PRD.md — StudyLink
 
 **Project Name:** StudyLink  
-**Status:** Planning / Architecture Phase  
-**Document Version:** 1.0  
+**Status:** Architecture & Implementation Phase  
+**Document Version:** 1.1 (v1 Scope Trimmed)
 
 ---
 
@@ -19,7 +19,7 @@ StudyLink addresses two distinct frictions within the academic lifecycle where r
 
 **Target Persona:** Technical Recruiters and Engineering Managers.  
 **Core Use Case:** As a portfolio piece, StudyLink demonstrates the ability to architect and deploy a multi-module full-stack application. It showcases:
-*   **Django Proficiency:** Complex data modeling, state machine implementation, and JWT/OAuth integration.
+*   **Django Proficiency:** Complex data modeling, state machine implementation, and JWT auth integration.
 *   **React Competency:** Responsive filtering, dashboard state management, and real-time AI chat interfaces.
 *   **Modern AI Integration:** Implementing a scoped RAG (Retrieval-Augmented Generation) pipeline using Gemini and `pgvector`.
 *   **System Reliability:** Handling file uploads, status transitions, and secure multi-tenant resource access.
@@ -41,9 +41,9 @@ StudyLink addresses two distinct frictions within the academic lifecycle where r
 *   **Handoff Coordination:** A request system where owners choose a recipient, and all other requesters are notified once the item is claimed.
 
 ### 3.3 Backend Layer (Django)
-*   **Authentication:** Dual-stream auth via JWT (Email/Password) and OAuth2 (Google/GitHub), with explicit account linking when an OAuth email matches an existing local account.
+*   **Authentication:** JWT Auth (Access/Refresh Tokens) for local email/password accounts in v1 (OAuth integration deferred to v2).
 *   **Storage Integration:** Managing PDF and image uploads to Supabase Storage.
-*   **Vector Operations:** Handling text chunking and storing embeddings in Supabase Postgres via `pgvector`.
+*   **Vector Operations:** Handling text chunking and storing embeddings in Supabase Postgres via `pgvector` (processed synchronously during upload in v1).
 *   **Notification Engine:** Triggering system notifications for request updates and marketplace status changes.
 
 ### 3.4 Frontend Layer (React)
@@ -59,7 +59,8 @@ StudyLink addresses two distinct frictions within the academic lifecycle where r
 *   **No Shipping Logistics:** The platform is strictly for local pickup; no address verification or shipping label generation.
 *   **Single-Document RAG Only:** The "Chat-with-Notes" feature is scoped to the active document only. No cross-document retrieval or global knowledge-base queries.
 *   **No Automated Matching:** No "Recommendation Engine" or "Smart Match" algorithm for v1; discovery is purely search/filter-based.
-*   **No real-time Chat:** Communication for handoffs is assumed to happen off-platform (via provided contact details) once a request is accepted.
+*   **No OAuth in v1:** Google and GitHub OAuth social login and account linking are deferred to v2.
+*   **No Async Background Workers in v1:** Celery and Redis worker queues are deferred to v2.
 
 ---
 
@@ -67,14 +68,14 @@ StudyLink addresses two distinct frictions within the academic lifecycle where r
 
 *   **Lifecycle Integrity:** A marketplace listing must correctly transition through all states (Available/Requested/Given Away) without data corruption or orphaned requests.
 *   **Retrieval Accuracy:** The RAG system must correctly identify and cite a specific page or chunk from an uploaded PDF when queried about its contents.
-*   **Auth Reliability:** Users must be able to maintain sessions via JWT and successfully link their sessions to Google/GitHub identities where applicable.
+*   **Auth Reliability:** Users must be able to securely register, log in, and maintain sessions via JWT.
 *   **Asset Management:** PDF and Image uploads must reliably persist in Supabase Storage with correct owner permissions.
 
 ---
 
 ## 6. Key Risks & Considerations
 
-*   **Account Linking Flow:** The implementation must ensure that an OAuth login using a pre-existing local email prompts the user to authenticate once with email/password and then link the provider for future logins.
 *   **OCR/Handwritten Notes:** The quality of the RAG feature is highly dependent on the readability of uploaded PDFs. There is a risk of poor answer quality or hallucinations when users upload low-contrast, handwritten technical notes.
 *   **Request Concurrency:** Managing multiple simultaneous requests for a single physical item to ensure the owner doesn't accidentally "double-commit" a handoff.
 *   **Gemini Context Limits:** Managing large PDFs that may exceed the prompt context window if chunking and retrieval aren't precisely tuned.
+*   **v1 Upload Latency:** Synchronous PDF ingestion and vector generation means response time scales with file size, accepted as a v1 tradeoff.
