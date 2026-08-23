@@ -35,8 +35,7 @@ Write documentation for backend operations.
 - **Task Description:** Write `backend/README.md` covering:
   - How to set up the virtualenv and run `pip install -r requirements.txt`.
   - Database migrations, seeding data (`python manage.py seed_tags`), and starting the server.
-  - Starting the Celery worker and Redis broker.
-  - Running pytest unit tests.
+  - Running pytest / Django unit tests.
 - **Definition of Done:**
   - `backend/README.md` contains clear local setup and execution instructions.
 

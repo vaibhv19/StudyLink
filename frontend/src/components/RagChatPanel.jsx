@@ -104,7 +104,7 @@ export default function RagChatPanel({
           </p>
           <p className="text-amber-700 leading-relaxed">
             {resourceStatus === 'PROCESSING'
-              ? 'This document is currently being vectorized in the background. AI questioning will become available once status is READY.'
+              ? 'This document is currently being extracted and vectorized. AI questioning will become available once status is READY.'
               : 'AI Chat is only enabled for documents in READY status.'}
           </p>
         </div>

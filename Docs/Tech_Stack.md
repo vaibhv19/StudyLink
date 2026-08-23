@@ -11,8 +11,7 @@ This document defines the technical specifications and infrastructure for **Stud
 | **Python** | `3.12` | Leverages modern type hinting and performance improvements for async-aware code. |
 | **Django** | `5.0` | Utilizes the latest ORM features and native support for asynchronous database operations where needed. |
 | **Django REST Framework** | `3.15` | Provides the industry-standard toolkit for building the platform's Web APIs. |
-| **JWT Auth** | `SimpleJWT` | Decentralizes session management, allowing the frontend to keep the access token in memory and the refresh token in an `HttpOnly` cookie. |
-| **OAuth Integration** | `Google OAuth` + `GitHub OAuth` | Supports social sign-in while preserving a consistent account-linking flow for existing local accounts. |
+| **JWT Auth** | `SimpleJWT` | Decentralizes session management for v1, allowing the frontend to keep the access token in memory and the refresh token in an `HttpOnly` cookie. |
 | **App Structure** | `accounts`, `vault`, `market`, `core` | Separates domain logic into distinct apps: `vault` for digital, `market` for physical, and `core` for shared Subject/Course tags. |
 
 ---
@@ -55,9 +54,9 @@ This document defines the technical specifications and infrastructure for **Stud
 
 | Component | Platform | Strategy |
 | :--- | :--- | :--- |
-| **Backend** | `Google Cloud Run` | Django is containerized for a serverless, auto-scaling deployment that only charges per request. |
-| **Frontend** | `Vercel` | Optimized for React SPAs; handles edge-caching and global distribution of the UI assets. |
-| **Background Processing** | `Celery + Redis` | Handles asynchronous ingestion, embedding, and notification jobs. |
+| **Backend** | `Google Cloud Run` | Django is containerized for a serverless, auto-scaling deployment using Cloud Run's default `*.run.app` URL. |
+| **Frontend** | `Vercel` | Optimized for React SPAs; hosted on Vercel's default deployment URL with edge-caching. |
+| **Processing Pattern** | `Synchronous` | Ingestion, chunking, and vector embedding run synchronously within the HTTP upload request cycle for v1. |
 | **CI/CD** | `GitHub Actions` | Automatically builds the Docker image on push, pushes to Google Artifact Registry, and triggers a Cloud Run revision. |
 
 ---
@@ -67,7 +66,7 @@ This document defines the technical specifications and infrastructure for **Stud
 | Strategy | Rationale |
 | :--- | :--- |
 | **Hybrid Local/Cloud** | **Approach:** Local Django + Local React connecting to a remote Supabase Dev Project. |
-| **Rationale** | Running a local Dockerized Postgres with `pgvector` and an S3-compatible storage emulator (like MinIO) adds significant local setup friction. Using a dedicated Supabase "Dev" environment ensures the DB schema, storage buckets, and vector extensions are identical to production with zero local configuration. Redis is also available for future caching if required. |
+| **Rationale** | Running a local Dockerized Postgres with `pgvector` and an S3-compatible storage emulator (like MinIO) adds significant local setup friction. Using a dedicated Supabase "Dev" environment ensures the DB schema, storage buckets, and vector extensions are identical to production with zero local configuration. |
 
 ---
 
@@ -75,8 +74,12 @@ This document defines the technical specifications and infrastructure for **Stud
 
 ### Why hand-roll Django Auth + JWT instead of using Supabase Auth?
 
-While Supabase Auth is convenient, I chose **Django + SimpleJWT + Google/GitHub OAuth** for three strategic reasons:
+While Supabase Auth is convenient, I chose **Django + SimpleJWT** for two strategic reasons:
 
 1.  **Ownership of the User Model:** In a platform like StudyLink, the `User` is the core of everything—marketplace reputation, resource ownership, and academic profiles. Storing users in Django's internal DB allows me to leverage the full power of the Django ORM for complex joins and signals (e.g., notifying requesters when an item is gone).
-2.  **Custom Account Merging Logic:** As noted in the PRD, merging a JWT-based email account with a GitHub OAuth login is a complex business rule. Supabase Auth’s merging logic is largely a "black box." By handling this in Django, I can implement precise checks and manual confirmation steps to ensure student identities aren't duplicated.
-3.  **Portability:** This approach prevents "Vendor Lock-in." By keeping the Auth logic inside the application code, the project remains portable to any Postgres provider, rather than being coupled to Supabase’s proprietary Go-based Auth service.
+2.  **Portability:** This approach prevents "Vendor Lock-in." By keeping the Auth logic inside the application code, the project remains portable to any Postgres provider, rather than being coupled to Supabase’s proprietary Go-based Auth service.
+
+### Scope Deferred to v2 Backlog
+
+*   **OAuth Integration (Google & GitHub):** Google/GitHub OAuth consent-screen setup and callback URI management were the slowest, least-automatable parts of a prior deployment; deferred to v2 backlog.
+*   **Async Processing (Celery + Redis):** Celery worker configuration and Redis broker provisioning were the slowest, least-automatable parts of a prior deployment; PDF ingestion and embedding generation run synchronously in v1, deferred to v2 backlog.

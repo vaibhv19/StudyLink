@@ -6,7 +6,7 @@ This document defines the REST API contract between the React frontend and the D
 
 ## 1. Global Conventions
 
-- **Base URL:** `https://api.studylink.dev/api/v1`
+- **Base URL:** `https://<cloud-run-domain>.run.app/api/v1`
 - **Content Type:** `application/json` (unless `multipart/form-data` for file/image uploads)
 - **Authentication:** `Authorization: Bearer <access_token>`
 - **Error Format:**
@@ -24,11 +24,11 @@ This document defines the REST API contract between the React frontend and the D
 
 | Endpoint | Method | Auth | Description |
 | :--- | :--- | :--- | :--- |
-| `/register/` | `POST` | Public | Creates new account. If the email already exists via OAuth, the API returns guidance to authenticate with email/password and link the provider. |
-| `/login/` | `POST` | Public | Returns Access/Refresh tokens and user object. |
-| `/token/refresh/` | `POST` | Public | Rotates the access token using a valid refresh token. |
-| `/social/google/` | `POST` | Public | Exchanges provider code for JWT session. |
-| `/social/github/` | `POST` | Public | Exchanges provider code for JWT session. |
+| `/register/` | `POST` | Public | Creates new user account with email, password, and full name. Returns JWT access token. |
+| `/login/` | `POST` | Public | Authenticates credentials and returns Access token + sets Refresh token HttpOnly cookie. |
+| `/token/refresh/` | `POST` | Public | Rotates the access token using a valid refresh token cookie. |
+
+*Note: OAuth endpoints (`/social/google/`, `/social/github/`) are deferred to the v2 backlog.*
 
 ---
 
@@ -37,9 +37,9 @@ This document defines the REST API contract between the React frontend and the D
 | Endpoint | Method | Auth | Description |
 | :--- | :--- | :--- | :--- |
 | `/` | `GET` | Public | List resources with filters (`subject`, `course`, `search`). |
-| `/` | `POST` | Private | Upload PDF resource. (Multipart: `file`, `title`, `tags`). The created resource is initially `PROCESSING`; it becomes `READY`, `FAILED`, or `UNSEARCHABLE` after ingestion. |
+| `/` | `POST` | Private | Upload PDF resource. (Multipart: `file`, `title`, `subject`, `course`). Synchronously chunks text and generates vector embeddings upon upload. |
 | `/{id}/` | `GET` | Public | Get resource metadata and Supabase file URL. |
-| `/{id}/rate/` | `POST` | Private | Toggle upvote/rating on a resource. |
+| `/{id}/upvote/` | `POST` | Private | Toggle upvote/rating on a resource. |
 | `/{id}/comments/` | `GET` | Public | List Doubt Board discussion for the resource. |
 | `/{id}/comments/` | `POST` | Private | Post a new comment/question to the Doubt Board. |
 
@@ -83,7 +83,7 @@ Managing physical items and the `Available → Requested → Given Away` state m
 | Endpoint | Method | Auth | Description |
 | :--- | :--- | :--- | :--- |
 | `/` | `GET` | Public | List giveaway items with filters (`pickup_area`, `subject`, `condition`). |
-| `/` | `POST` | Private | Create a listing. (Multipart: `photo`, `title`, `description`). |
+| `/` | `POST` | Private | Create a listing. (Multipart: `photo`, `title`, `description`, `pickup_area`). |
 | `/{id}/` | `GET` | Public | Detail view of a listing + pickup area info. |
 | `/{id}/request/` | `POST` | Private | Interested user sends a request to the owner. |
 | `/{id}/status/` | `PATCH` | Private | Owner updates status (e.g., to `Given Away` or back to `Available`). |
@@ -97,8 +97,6 @@ This endpoint is designed to power the unified management view for the active us
 
 **Endpoint:** `GET /dashboard/owner/`  
 **Auth:** Private
-
-**Justification:** A unified call is utilized here rather than separate endpoints for listings and requests. This ensures that the frontend can render the "My Items" grid alongside their associated "Pending Requests" counts without disparate network latency or data desynchronization.
 
 **Response Body (200 OK):**
 ```json
@@ -126,8 +124,7 @@ This endpoint is designed to power the unified management view for the active us
 
 - `200 OK`: Request successful.
 - `201 Created`: Resource (Upload/Listing/Request) successfully created.
-- `400 Bad Request`: Validation error (e.g., invalid subject tag).
-- `401 Unauthorized`: Missing or expired JWT.
-- `403 Forbidden`: Attempting to update a listing or rate a resource owned by someone else.
-- `409 Conflict`: Business logic conflict (e.g., when a provider attempt cannot be linked without the required email/password confirmation).
+- `400 Bad Request`: Validation error (e.g., invalid subject tag or weak password).
+- `401 Unauthorized`: Missing or expired JWT access token.
+- `403 Forbidden`: Attempting to update a listing or upvote own resource.
 - `500 Internal Server Error`: Server-side failure (e.g., Gemini API timeout or Supabase connection loss).

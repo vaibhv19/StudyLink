@@ -16,14 +16,15 @@ Unlike comprehensive RAG systems that query across an entire library, StudyLinkâ
 
 ## 2. Ingestion & Chunking Strategy
 
-To ensure chat is available immediately upon first request, chunking and embedding occur asynchronously during the document upload process.
+Chunking and embedding occur **synchronously** within the upload HTTP request cycle upon file upload to Supabase Storage.
 
-*   **Timing:** Triggered by a Celery task immediately after a successful upload to Supabase Storage.
+*   **Timing:** Executed synchronously in the Django request handler immediately after saving the PDF file.
 *   **Splitter:** `RecursiveCharacterTextSplitter`.
 *   **Parameters:** 
     *   **Chunk Size:** 1,000 characters.
     *   **Chunk Overlap:** 200 characters.
 *   **Rationale:** Academic notes often contain dense definitions and examples. A 1,000-character window is wide enough to capture a full definition plus its surrounding context, while the 200-character overlap prevents the loss of meaning at the split boundaries.
+*   **v1 Tradeoff & Limitation:** Upload response time scales directly with PDF size (e.g. text extraction and vector generation take a few extra seconds for large PDFs). This is an accepted v1 scope limitation to avoid Redis/Celery deployment complexity, and is flagged as a candidate for background processing offloading in v2.
 
 ---
 
@@ -59,7 +60,7 @@ StudyLink leverages the Google Gemini ecosystem for both vectorization and respo
 
 StudyLink implements specific guardrails for academic document edge cases:
 
-*   **Failure 1: The "Scanned Image" PDF.** If the PDF contains no extractable text (un-OCR'd scan), the ingestion task marks the resource as `UNSEARCHABLE`. The chat UI is disabled for this resource, and a message appears: *"This document appears to be an image. Use an OCR tool to make it searchable."*
+*   **Failure 1: The "Scanned Image" PDF.** If the PDF contains no extractable text (un-OCR'd scan), the ingestion pipeline marks the resource as `UNSEARCHABLE`. The chat UI is disabled for this resource, and a message appears: *"This document appears to be an image. Use an OCR tool to make it searchable."*
 *   **Failure 2: The "Out of Bounds" Question.** If the Top-1 chunk's similarity score is below a threshold (e.g., `0.65`), the system aborts LLM generation.
     *   **Action:** Returns a standardized refusal: *"I couldn't find any relevant information in this specific document to answer that. Try checking your other resources or the Doubt Board."*
     *   **Rationale:** This prevents hallucinations and reinforces the "Single-Document" scope boundary.

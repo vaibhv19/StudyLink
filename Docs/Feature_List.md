@@ -10,7 +10,7 @@
 
 - Upload study material (PDFs, notes) tagged by subject/course
 - Filterable search (subject, course, tags)
-- Doubt board / discussion per resource (from the original VidyaLink idea)
+- Doubt board / discussion per resource
 - Rating/upvote system so quality material surfaces
 - **Chat with your notes** — student picks an uploaded PDF and asks questions about it; answered via a Gemini-based RAG pipeline (pgvector similarity search over that document's chunks), scoped to one document at a time — not cross-document retrieval
 
@@ -18,7 +18,7 @@
 
 - List an item to give away: title, condition, subject/course tag, description, photo, pickup_area
 - Search/filter by subject, course, condition, pickup_area
-- Status lifecycle: `Available → Requested → Given Away` (falls back to `Available` if a request doesn't work out) — same state-machine pattern as Trajectory's application status
+- Status lifecycle: `Available → Requested → Given Away` (falls back to `Available` if a request doesn't work out)
 - Request flow: interested users send a request; owner reviews pending requests and picks one; other requesters get notified the item's gone
 - Owner dashboard: your listings + incoming requests, in one place
 - **Local pickup only** — no shipping, no payment integration. Match people, they coordinate the handoff themselves. This is the deliberate scope boundary that keeps it from becoming an e-commerce project.
@@ -27,10 +27,10 @@
 
 ## Backend Layer (Django)
 
-- Auth: JWT (access/refresh) + Google OAuth + GitHub OAuth
+- Auth: JWT (access/refresh tokens) for v1 local accounts
 - Data model: `Resource` (vault) and `Listing` (marketplace) as separate entities, both tied to Subject/Course tags
 - File/image storage: Supabase Storage (uploaded PDFs, listing photos)
-- Vector storage: Supabase Postgres with `pgvector` (resource chunk embeddings for the chat-with-notes feature)
+- Vector storage: Supabase Postgres with `pgvector` (resource chunk embeddings for the chat-with-notes feature, created synchronously on upload in v1)
 - Notification on request status change (owner gets notified of new requests; requesters get notified when an item's taken)
 - Search/filter query logic across both modules
 - Core engineering: validation, pagination, permissions (only owner can manage their own listings/resources)
@@ -47,9 +47,13 @@
 ## Deployment
 
 - Database + Storage: Supabase (Postgres + Storage; not Supabase Auth)
-- Backend: Django, containerized, deployed to GCP Cloud Run
-- Frontend: React, deployed to Vercel
+- Backend: Django, containerized, deployed to GCP Cloud Run (default `*.run.app` URL)
+- Frontend: React, deployed to Vercel (default `*.vercel.app` URL)
 
-## Account Linking
+---
 
-- If an OAuth login uses an email that already exists for a local account, the user is prompted to authenticate once with email/password and then the provider is linked for future sign-ins.
+## Deferred to v2 Backlog
+
+- **OAuth Integration:** Google OAuth + GitHub OAuth social login and account linking logic deferred to v2.
+- **Async Background Processing:** Celery + Redis task queue for async ingestion and notifications deferred to v2.
+- **Custom Domain:** Custom DNS / domain configuration deferred to v2.
