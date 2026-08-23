@@ -3,6 +3,24 @@
 > **Empowering Academic Collaboration & Resource Sharing**  
 > StudyLink is a full-stack academic platform featuring a **Resource Vault** powered by RAG (Retrieval-Augmented Generation) document Q&A and an **Peer-to-Peer Marketplace** for textbook and study material handoffs.
 
+## 📊 Project Status (v1)
+
+> **StudyLink v1** is maintained as a fully implemented, tested, documented, and audited portfolio project. Public cloud deployment is intentionally deferred for this release; the application is complete as a repository and reproducible locally.
+
+| Component | Status | Note |
+| :--- | :---: | :--- |
+| **Docs** | ✅ | Comprehensive specification & learning guides |
+| **Roadmap** | ✅ | All core feature phases executed |
+| **Coding** | ✅ | Full-stack Django REST + React 18 implementation |
+| **UI Polish** | ❎ | Intentionally deferred / not part of current completion checkpoint |
+| **Manual Setup** | ✅ | Verified local reproducibility |
+| **Documentation** | ✅ | Module guides & architecture docs complete |
+| **Audit Report** | ✅ | Final audit verdict: **PASS** (Ready for deployment) |
+| **Deployment** | ❎ | Intentionally deferred for v1 release |
+| **Deployment Documentation** | ❎ | Intentionally deferred for v1 release |
+
+> *Note on `❎`: Indicates an intentional scope decision for StudyLink v1 (not a failure or broken state). Deferral avoids sleeping free-tier host cold starts and GCP billing pre-payment requirements while keeping the repository fully container-ready.*
+
 ---
 
 ## 🌟 The Two-Module Pitch

@@ -50,14 +50,16 @@ This document defines the technical specifications and infrastructure for **Stud
 
 ---
 
-## 5. Deployment & CI/CD
+## 5. Deployment Architecture & Status
 
-| Component | Platform | Strategy |
+| Component | Target Platform | Strategy & Status |
 | :--- | :--- | :--- |
-| **Backend** | `Google Cloud Run` | Django is containerized for a serverless, auto-scaling deployment using Cloud Run's default `*.run.app` URL. |
-| **Frontend** | `Vercel` | Optimized for React SPAs; hosted on Vercel's default deployment URL with edge-caching. |
+| **Backend** | `Google Cloud Run` (Evaluated / Container-Ready) | Backend containerized (`Dockerfile`); public hosting intentionally deferred for v1. |
+| **Frontend** | `Vercel` (Evaluated / Monorepo Configured) | React SPA configured (`vercel.json`); public hosting intentionally deferred for v1. |
+| **Database & Storage** | `Supabase` (Active) | Supabase PostgreSQL + `pgvector` & S3 Storage buckets actively configured. |
 | **Processing Pattern** | `Synchronous` | Ingestion, chunking, and vector embedding run synchronously within the HTTP upload request cycle for v1. |
-| **CI/CD** | `GitHub Actions` | Automatically builds the Docker image on push, pushes to Google Artifact Registry, and triggers a Cloud Run revision. |
+
+*Deployment Status for v1 Release:* **Intentionally Deferred (❎)**. The application is maintained as a locally runnable, fully container-ready codebase.
 
 ---
 
@@ -81,5 +83,6 @@ While Supabase Auth is convenient, I chose **Django + SimpleJWT** for two strate
 
 ### Scope Deferred to v2 Backlog
 
+*   **Public Cloud Hosting (Cloud Run & Vercel):** GCP account billing pre-payment requirements (₹1,000 minimum) and sleeping free-tier host cold start issues led to intentionally deferring active deployment while preserving full container/deployment readiness.
 *   **OAuth Integration (Google & GitHub):** Google/GitHub OAuth consent-screen setup and callback URI management were the slowest, least-automatable parts of a prior deployment; deferred to v2 backlog.
 *   **Async Processing (Celery + Redis):** Celery worker configuration and Redis broker provisioning were the slowest, least-automatable parts of a prior deployment; PDF ingestion and embedding generation run synchronously in v1, deferred to v2 backlog.

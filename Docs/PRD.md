@@ -59,6 +59,7 @@ StudyLink addresses two distinct frictions within the academic lifecycle where r
 *   **No Shipping Logistics:** The platform is strictly for local pickup; no address verification or shipping label generation.
 *   **Single-Document RAG Only:** The "Chat-with-Notes" feature is scoped to the active document only. No cross-document retrieval or global knowledge-base queries.
 *   **No Automated Matching:** No "Recommendation Engine" or "Smart Match" algorithm for v1; discovery is purely search/filter-based.
+*   **No Public Cloud Deployment in v1:** Active deployment to GCP Cloud Run / Vercel is intentionally deferred; the project is maintained as a locally runnable repository with complete containerization readiness.
 *   **No OAuth in v1:** Google and GitHub OAuth social login and account linking are deferred to v2.
 *   **No Async Background Workers in v1:** Celery and Redis worker queues are deferred to v2.
 

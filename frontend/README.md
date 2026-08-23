@@ -57,7 +57,9 @@ export default defineConfig({
 })
 ```
 
-All API requests in the frontend use relative paths (`/api/v1/...`), which seamlessly resolve to `http://localhost:8000/api/v1/...` in development and to the production domain when deployed.
+All API requests in the frontend use relative paths (`/api/v1/...`), which seamlessly resolve to `http://localhost:8000/api/v1/...` via Vite proxy during development, and map to target API endpoints when deployed.
+
+> **Deployment Readiness Note:** The frontend repository contains `vercel.json` and production build configuration (`npm run build`) prepared for Vercel deployment. Public hosting is intentionally deferred for v1.
 
 ---
 

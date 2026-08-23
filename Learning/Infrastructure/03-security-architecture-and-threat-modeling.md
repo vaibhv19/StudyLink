@@ -14,8 +14,8 @@ Security architecture in **StudyLink** is designed around zero-trust API boundar
 | **Marketplace Race Conditions** | State Corruption / Double Claim | Pessimistic database row locking (`SELECT FOR UPDATE`) in `market.services` |
 | **RAG Prompt Injection** | Model Misbehavior / Data Leakage | System prompt demarcation separating untrusted context from model instructions |
 | **Cross-Tenant Vector Retrieval** | Document Leakage | Parameterized SQL query filters constraining vector similarity to `resource_id` |
-| **Credential & Secret Exposure** | Account Takeover | Zero hardcoded keys; runtime environment variable injection via Cloud Secret Manager |
-| **Man-in-the-Middle (MitM)** | Traffic Eavesdropping | TLS 1.3 encryption across Cloud Run, Vercel, Supabase Postgres, and S3 |
+| **Credential & Secret Exposure** | Account Takeover | Zero hardcoded keys; runtime env vars via `.env` and Cloud Secret Manager spec |
+| **Man-in-the-Middle (MitM)** | Traffic Eavesdropping | TLS 1.3 encryption across Supabase Postgres, S3, and HTTPS endpoints |
 
 ---
 

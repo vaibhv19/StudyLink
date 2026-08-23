@@ -30,11 +30,11 @@ StudyLink is an academic resource-sharing, marketplace, and RAG-powered platform
 
 ## 3. Data Protection & Encryption
 
-- **Data in Transit**: Mandatory TLS 1.3 / HTTPS encryption for all external traffic (Cloud Run backend, Vercel frontend, Supabase PostgreSQL, and S3 media storage).
+- **Data in Transit**: Mandatory TLS 1.3 / HTTPS encryption specification for external traffic (Supabase PostgreSQL, S3 media storage, and future Cloud Run/Vercel endpoints).
 - **Data at Rest**:
   - PostgreSQL database encrypted using AES-256 at the storage layer.
   - S3 media storage buckets enforce server-side encryption (`SSE-S3`).
-- **Secret Management**: Zero secrets or API keys in source control. Environment variables injected at runtime via Google Cloud Secret Manager / Cloud Run and Vercel dashboard.
+- **Secret Management**: Zero secrets or API keys in source control. Environment variables injected at runtime via `.env` files locally and designed for Google Cloud Secret Manager / Cloud Run injection in production.
 
 ---
 

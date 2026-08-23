@@ -20,8 +20,8 @@ Below is the execution sequence. Each phase is documented in its own file with f
 | **Phase 08** | Notification Engine | In-app alerts, in-process triggers for marketplace requests/upvotes | [Phase_08_Notifications.md](file:///d:/Coding/Projects----For%20Resume/StudyLink/Docs/roadmap/Phase_08_Notifications.md) |
 | **Phase 09** | React Frontend UI | Zustand state stores, React Router 6, Vault RAG UI, Marketplace Dashboard | [Phase_09_React_Frontend.md](file:///d:/Coding/Projects----For%20Resume/StudyLink/Docs/roadmap/Phase_09_React_Frontend.md) |
 | **Phase 10** | Integration Testing | End-to-End simulation tests, RAG/State verification | [Phase_10_Integration_Testing.md](file:///d:/Coding/Projects----For%20Resume/StudyLink/Docs/roadmap/Phase_10_Integration_Testing.md) |
-| **Phase 11** | Deployment Prep | CORS configurations, Cloud Run Docker settings, Vercel root scopes | [Phase_11_Deployment_Preparation.md](file:///d:/Coding/Projects----For%20Resume/StudyLink/Docs/roadmap/Phase_11_Deployment_Preparation.md) |
-| **Phase 12** | Manual Cloud Setup | Anti-Gravity assisted instructions for GCP Cloud Run & Supabase (default URLs) | [Phase_12_Manual_Deployment.md](file:///d:/Coding/Projects----For%20Resume/StudyLink/Docs/roadmap/Phase_12_Manual_Deployment.md) |
+| **Phase 11** | Deployment Prep | `[PRESERVED / CONTAINER READY]` Docker settings, CORS, settings_prod.py | [Phase_11_Deployment_Preparation.md](file:///d:/Coding/Projects----For%20Resume/StudyLink/Docs/roadmap/Phase_11_Deployment_Preparation.md) |
+| **Phase 12** | Manual Cloud Setup | `[DEFERRED TO V2 / REFERENCE ONLY]` GCP Cloud Run & Vercel deployment guide | [Phase_12_Manual_Deployment.md](file:///d:/Coding/Projects----For%20Resume/StudyLink/Docs/roadmap/Phase_12_Manual_Deployment.md) |
 | **Phase 13** | Audit & Handover | Project README audits, API swagger verifications, developer handoff | [Phase_13_Documentation.md](file:///d:/Coding/Projects----For%20Resume/StudyLink/Docs/roadmap/Phase_13_Documentation.md) |
 
 ---
@@ -102,12 +102,21 @@ At the end of each milestone, the application must be in a stable, runnable, and
 *   **Completed Functionality:** React single page app with Zustand state stores, unified filtering sidebars, Doubt Board interface, Chat bubble layout with source page excerpts, Marketplace dashboard with owner accept/cancel panels.
 *   **Demonstrable Features:** End-to-end user flows in local browser: signing up, uploading a PDF, asking a question in the chat panel, listing a physical textbook in the marketplace, requesting it from a different account, and accepting the request in the owner dashboard.
 *   **Testable Behavior:** E2E integration test suite simulating full transaction lifecycles.
-*   **Remaining Work:** Cloud deployments.
+*   **Remaining Work:** Local quality audit & documentation handover.
 
-### Milestone 5: Production Deployment & Handover (End of Phase 13)
-*   **Completed Functionality:** Containerized Django backend running on GCP Cloud Run (default `*.run.app` URL), React assets compiled and hosted on Vercel (default `*.vercel.app` URL), Supabase DB & Storage in production mode.
-*   **Demonstrable Features:** Live default staging URLs securely interacting over SSL with working JWTs, PDF ingestion, and RAG chats.
-*   **Testable Behavior:** Final production audit scripts and response latency checks.
+### Milestone 5: Local Handover & Audit Complete (End of Phase 13)
+*   **Completed Functionality:** Repository audited, containerized Django backend prepared (`Dockerfile`), React assets configured (`vercel.json`), Supabase DB & Storage in dev/prod mode, master READMEs and swagger endpoints verified.
+*   **Demonstrable Features:** Fully reproducible local execution environment with complete backend API test suite and E2E integration tests passing.
+*   **Final Release Status:**
+    - Docs: ✅
+    - Roadmap: ✅
+    - Coding: ✅
+    - UI Polish: intentionally deferred / not part of current completion checkpoint
+    - Manual Setup: ✅
+    - Documentation: ✅
+    - Audit Report: ✅ (Verdict: PASS — Ready for deployment)
+    - Deployment: ❎ (Intentionally deferred for v1 release)
+    - Deployment Documentation: ❎ (Intentionally deferred for v1 release)
 
 ---
 

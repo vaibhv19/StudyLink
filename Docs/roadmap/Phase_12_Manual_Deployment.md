@@ -1,8 +1,10 @@
-# Phase 12 — Manual Cloud Deployment Guide (Anti-Gravity Assisted)
+# Phase 12 — Future Manual Cloud Deployment Guide (Reference Guide)
 
-This phase covers manual cloud deployment steps for **StudyLink**. It assumes you are working with **Anti-Gravity Chat** to configure GCP Cloud Run, Supabase Postgres & Storage, Gemini API keys, and Vercel static hosting.
+> **Status Notice (v1):** Active public cloud deployment is **INTENTIONALLY DEFERRED** for the StudyLink v1 release (Deployment: ❎, Deployment Documentation: ❎). This step-by-step deployment guide is preserved as an architectural reference for future deployment to Google Cloud Run and Vercel in v2.
 
-*Note: OAuth Consent Screen setup and custom domain/DNS setup steps are excluded for v1. Cloud Run's default `*.run.app` URL and Vercel's default `*.vercel.app` URL are used for v1.*
+This phase covers manual cloud deployment steps for **StudyLink** when deploying to GCP Cloud Run, Supabase Postgres & Storage, Gemini API keys, and Vercel static hosting.
+
+*Note: OAuth Consent Screen setup and custom domain/DNS setup steps are excluded for v1.*
 
 ---
 

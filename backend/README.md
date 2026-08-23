@@ -57,6 +57,8 @@ python manage.py test
 python manage.py runserver 8000
 ```
 
+> **Deployment Readiness Note:** The backend repository contains a production `Dockerfile` and `config/settings_prod.py` prepared for GCP Cloud Run deployment. Public hosting is intentionally deferred for v1; the backend is fully functional locally and ready for containerized release.
+
 ---
 
 ## 📡 API Surface at a Glance

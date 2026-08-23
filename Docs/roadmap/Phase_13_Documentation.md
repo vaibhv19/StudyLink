@@ -75,25 +75,25 @@ Write the main project documentation.
 ##### Task 13.03.01: Write Master Repository README
 - **Estimated Size:** S
 - **Risk:** Low
-- **Prerequisites:** Phase 12 complete
+- **Prerequisites:** Phase 10 complete
 - **Task Description:** Write the main `README.md` in the workspace root, detailing:
   - The project's architecture, folder structure, and core technologies.
   - A summary of features (Resource Vault, RAG Chat, Marketplace).
-  - Setup instructions for the monorepo.
-  - Staging deployment URLs.
+  - Quick-start instructions for local setup and execution.
+  - Project status overview (v1 complete, public deployment intentionally deferred).
 - **Definition of Done:**
-  - The root README is complete and provides a clear project overview.
+  - The root README is complete, confident, and provides a clear project overview.
 
 ##### Task 13.03.02: Perform Security & Performance Audit
 - **Estimated Size:** S
 - **Risk:** Medium
-- **Prerequisites:** Phase 12 complete
-- **Task Description:** Run final checks on the deployed app:
-  - Verify that `DEBUG` is set to `False` in production.
+- **Prerequisites:** Phase 10 complete
+- **Task Description:** Run final checks on the application codebase:
+  - Verify that `settings_prod.py` configures `DEBUG = False` and security headers for deployment readiness.
   - Test the RAG similarity search threshold, ensuring weak queries are blocked.
-  - Check that all connections use HTTPS.
+  - Verify database pooler and Supabase pgvector configuration.
 - **Definition of Done:**
-  - The app passes all checks in the audit checklist.
+  - Audit verdict: **PASS — Ready to proceed to deployment**. (Actual cloud deployment intentionally deferred after audit).
 
 ---
 

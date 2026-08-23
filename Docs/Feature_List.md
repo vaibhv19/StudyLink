@@ -44,16 +44,18 @@
 
 ---
 
-## Deployment
+## Deployment Architecture & Prepared Readiness
 
-- Database + Storage: Supabase (Postgres + Storage; not Supabase Auth)
-- Backend: Django, containerized, deployed to GCP Cloud Run (default `*.run.app` URL)
-- Frontend: React, deployed to Vercel (default `*.vercel.app` URL)
+- Database + Storage: Supabase (Postgres + Storage; active)
+- Backend Containerization: Dockerized Django backend (`backend/Dockerfile`), prepared for GCP Cloud Run
+- Frontend Static Assets: Vite React build (`frontend/vercel.json`), prepared for Vercel hosting
+- **v1 Deployment Status:** Intentionally Deferred (❎) — maintainable and reproducible locally; live cloud deployment deferred to v2.
 
 ---
 
 ## Deferred to v2 Backlog
 
+- **Public Cloud Hosting:** Defer active GCP Cloud Run and Vercel hosting deployment to v2 (avoiding sleeping tier cold starts and GCP account pre-payment requirements).
 - **OAuth Integration:** Google OAuth + GitHub OAuth social login and account linking logic deferred to v2.
 - **Async Background Processing:** Celery + Redis task queue for async ingestion and notifications deferred to v2.
 - **Custom Domain:** Custom DNS / domain configuration deferred to v2.

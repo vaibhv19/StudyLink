@@ -1,6 +1,8 @@
-# Phase 11 — Deployment Preparation
+# Phase 11 — Deployment Preparation (Preserved Architecture)
 
-This phase covers the configuration and build setups required before releasing **StudyLink** to production. It implements Docker build configurations, environment variable strategies, Cloud Run setup scripts, Vercel monorepo configurations, and the CORS handshake protocol using default service deployment URLs.
+> **Status Notice (v1):** Deployment preparation (Dockerization, CORS settings, production settings, and Vercel monorepo configuration) is fully implemented and preserved in the repository. Active public cloud deployment is intentionally deferred (Status: ❎) for the v1 release.
+
+This phase covers the configuration and build setups created for **StudyLink**. It implements Docker build configurations, environment variable strategies, Cloud Run setup specifications, Vercel monorepo configurations, and the CORS handshake protocol.
 
 ---
 

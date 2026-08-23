@@ -45,9 +45,10 @@ In `frontend/vite.config.js`, `docker-compose.yml`, and `vercel.json`:
     }
   })
   ```
-- **Deployment Decoupling**:  
-  - **Frontend**: Deployed to Vercel via root `vercel.json` SPA rewrites (`"src": "/(.*)", "dest": "/index.html"`).
-  - **Backend**: Containerized via `backend/Dockerfile` and `docker-compose.yml` for Railway/Render deployment.
+- **Deployment Decoupling (Prepared Architecture)**:  
+  - **Frontend**: Configured for Vercel via root `vercel.json` SPA rewrites (`"src": "/(.*)", "dest": "/index.html"`).
+  - **Backend**: Containerized via `backend/Dockerfile` and `docker-compose.yml` for serverless container deployment (e.g. GCP Cloud Run).
+  - *v1 Release Note:* Active public hosting is intentionally deferred; the application is fully container-ready.
 
 ---
 

@@ -32,3 +32,16 @@ This document explicitly tracks features and infrastructure components deferred 
 - **v2 Implementation Plan:**
   - Map custom domain in Google Cloud Run domain mappings and Vercel domain settings.
   - Configure DNS records (A/AAAA/CNAME) at domain registrar.
+
+### 1.4 Public Cloud Hosting Deployment (Cloud Run & Vercel)
+- **v1 Status:** Deferred (Status: ❎ — Application maintained as a fully containerized, locally runnable repository).
+- **Description:** Deploying containerized Django backend to Google Cloud Run and static React assets to Vercel hosting.
+- **Why Deferred from v1:** 
+  - GCP billing setup required a ₹1,000 pre-payment to activate deployment services.
+  - Alternative free tier backend hosts (Render, Railway, Koyeb) put inactive instances to sleep, introducing significant cold start latency and unreliable initial request responses.
+  - The developer chose not to pay for always-on cloud infrastructure solely to host a portfolio project at this stage.
+  - Therefore, live hosting deployment is intentionally deferred rather than compromising application quality with unreliable free tier hosting.
+- **v2 Implementation Plan:**
+  - Build and push backend Docker image to Google Artifact Registry.
+  - Deploy backend image to GCP Cloud Run with Secret Manager environment variables.
+  - Deploy React frontend to Vercel and configure `VITE_API_BASE_URL` handshake.
