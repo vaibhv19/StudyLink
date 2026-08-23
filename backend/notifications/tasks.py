@@ -8,13 +8,13 @@ logger = get_task_logger(__name__)
 User = get_user_model()
 
 
-@shared_task(bind=True, name='notifications.tasks.send_notification_task', max_retries=3)
-def send_notification_task(self, recipient_id, notification_type, title, message):
+def send_notification_sync(recipient_id, notification_type, title, message):
     """
-    Asynchronously resolves recipient and writes a Notification database record.
+    Synchronously resolves recipient and writes a Notification database record.
+    Executed in-process within transaction.on_commit hooks for v1.
     """
     logger.info(
-        "Task notifications.tasks.send_notification_task started: recipient_id=%s, type=%s, title=%s",
+        "Sending notification: recipient_id=%s, type=%s, title=%s",
         recipient_id, notification_type, title
     )
     try:
@@ -36,9 +36,14 @@ def send_notification_task(self, recipient_id, notification_type, title, message
         )
         return str(notification.id)
     except Exception as e:
-        logger.warning(
-            "Error creating notification for recipient %s: %s. Retrying (attempt %s/%s)...",
-            recipient_id, str(e), self.request.retries + 1, self.max_retries
-        )
-        countdown = 2 ** self.request.retries
-        raise self.retry(exc=e, countdown=countdown)
+        logger.exception("Error creating notification for recipient %s: %s", recipient_id, str(e))
+        return None
+
+
+@shared_task(bind=True, name='notifications.tasks.send_notification_task', max_retries=3)
+def send_notification_task(self, recipient_id, notification_type, title, message):
+    """
+    Celery task wrapper around send_notification_sync for v2 async compatibility.
+    """
+    return send_notification_sync(recipient_id, notification_type, title, message)
+

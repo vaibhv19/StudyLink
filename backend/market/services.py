@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from rest_framework.exceptions import PermissionDenied, APIException
 from rest_framework import status
 from market.models import Listing, ListingRequest, ListingStatusHistory
-from notifications.tasks import send_notification_task
+from notifications.tasks import send_notification_sync
 
 class ConflictError(APIException):
     status_code = status.HTTP_409_CONFLICT
@@ -61,7 +61,7 @@ def accept_request(owner, request_id):
         recipient_id = str(request_obj.requester_id)
         listing_title = listing.title
         pickup_area = listing.pickup_area or "Not specified"
-        transaction.on_commit(lambda: send_notification_task.delay(
+        transaction.on_commit(lambda: send_notification_sync(
             recipient_id,
             'REQUEST_ACCEPTED',
             f"Request accepted for {listing_title}",
@@ -71,7 +71,7 @@ def accept_request(owner, request_id):
         # Trigger notifications to other active requesters
         for other_id in other_requester_ids:
             other_id_str = str(other_id)
-            transaction.on_commit(lambda oid=other_id_str: send_notification_task.delay(
+            transaction.on_commit(lambda oid=other_id_str: send_notification_sync(
                 oid,
                 'ITEM_CLAIMED',
                 f"Item no longer available: {listing_title}",
@@ -132,7 +132,7 @@ def cancel_request(user, request_id):
         listing_title = listing.title
         if is_owner:
             req_user_id = str(request_obj.requester_id)
-            transaction.on_commit(lambda: send_notification_task.delay(
+            transaction.on_commit(lambda: send_notification_sync(
                 req_user_id,
                 'REQUEST_CANCELED',
                 f"Request declined for {listing_title}",
@@ -142,7 +142,7 @@ def cancel_request(user, request_id):
             if old_request_status == 'ACCEPTED':
                 owner_id = str(listing.owner_id)
                 user_name = user.full_name or user.email
-                transaction.on_commit(lambda: send_notification_task.delay(
+                transaction.on_commit(lambda: send_notification_sync(
                     owner_id,
                     'REQUEST_CANCELED',
                     f"Request withdrawn for {listing_title}",
@@ -186,7 +186,7 @@ def complete_handoff(owner, listing_id):
         if accepted_req:
             rec_id = str(accepted_req.requester_id)
             listing_title = listing.title
-            transaction.on_commit(lambda: send_notification_task.delay(
+            transaction.on_commit(lambda: send_notification_sync(
                 rec_id,
                 'ITEM_CLAIMED',
                 f"Handoff completed for {listing_title}",

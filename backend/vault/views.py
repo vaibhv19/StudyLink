@@ -9,7 +9,7 @@ from rest_framework.exceptions import PermissionDenied
 from core.pagination import StandardResultsSetPagination
 from vault.models import Resource, ResourceUpvote, DoubtBoardComment
 from vault.serializers import ResourceUploadSerializer, ResourceSerializer, DoubtBoardCommentSerializer
-from notifications.tasks import send_notification_task
+from notifications.tasks import send_notification_sync
 
 class ResourceListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -93,7 +93,7 @@ class UpvoteToggleView(APIView):
             uploader_id = str(resource.uploader_id)
             user_name = request.user.full_name or request.user.email
             resource_title = resource.title
-            transaction.on_commit(lambda: send_notification_task.delay(
+            transaction.on_commit(lambda: send_notification_sync(
                 uploader_id,
                 'UPVOTE_RECEIVED',
                 f"New upvote on {resource_title}",
@@ -139,7 +139,7 @@ class CommentListCreateView(generics.ListCreateAPIView):
         resource_title = resource.title
         if resource.uploader != request.user:
             uploader_id = str(resource.uploader_id)
-            transaction.on_commit(lambda: send_notification_task.delay(
+            transaction.on_commit(lambda: send_notification_sync(
                 uploader_id,
                 'NEW_COMMENT',
                 f"New comment on {resource_title}",
@@ -149,7 +149,7 @@ class CommentListCreateView(generics.ListCreateAPIView):
         # If replying to a parent comment, notify parent comment author
         if comment.parent and comment.parent.user != request.user and comment.parent.user != resource.uploader:
             parent_user_id = str(comment.parent.user_id)
-            transaction.on_commit(lambda puid=parent_user_id: send_notification_task.delay(
+            transaction.on_commit(lambda puid=parent_user_id: send_notification_sync(
                 puid,
                 'NEW_COMMENT',
                 f"New reply on {resource_title}",

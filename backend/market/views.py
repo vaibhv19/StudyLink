@@ -12,7 +12,7 @@ from rest_framework.exceptions import ValidationError
 from django.db import transaction, IntegrityError
 from market.models import Listing, ListingRequest, ListingStatusHistory
 from market.serializers import ListingSerializer, ListingCreateSerializer, ListingRequestSerializer
-from notifications.tasks import send_notification_task
+from notifications.tasks import send_notification_sync
 
 class ListingListCreateView(generics.ListCreateAPIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -113,7 +113,7 @@ class RequestItemView(APIView):
         owner_id = str(listing.owner_id)
         user_name = request.user.full_name or request.user.email
         listing_title = listing.title
-        transaction.on_commit(lambda: send_notification_task.delay(
+        transaction.on_commit(lambda: send_notification_sync(
             owner_id,
             'NEW_REQUEST',
             f"New request for {listing_title}",
