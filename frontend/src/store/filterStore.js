@@ -15,12 +15,4 @@ export const useFilterStore = create((set) => ({
 
   resetVaultFilters: () => set({ subject: '', course: '', search: '' }),
   resetMarketFilters: () => set({ subject: '', condition: '', pickupArea: '' }),
-  resetAll: () =>
-    set({
-      subject: '',
-      course: '',
-      search: '',
-      condition: '',
-      pickupArea: '',
-    }),
 }));

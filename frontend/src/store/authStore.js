@@ -28,11 +28,6 @@ export const useAuthStore = create((set, get) => ({
     });
   },
 
-  setUser: (userData) => {
-    set({
-      user: userData,
-    });
-  },
 
   updateProfile: (profileData) => {
     const currentUser = get().user;
